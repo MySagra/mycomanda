@@ -41,9 +41,7 @@ export function Header() {
         <header className="fixed top-0 w-full border-b bg-card z-50">
             <div className="flex h-16 items-center justify-between px-6">
                 <div className="flex items-center gap-3 min-w-0 shrink-0">
-                    <div className="h-10 w-10 rounded-full overflow-hidden shrink-0 select-none bg-primary flex items-center justify-center">
-                        <img className="h-full w-full object-contain" src="/logo.svg" />
-                    </div>
+                    <img className="mx-auto h-10 w-auto select-none" src="/logo.svg" />
                     <h1 className="text-2xl font-bold select-none">MyComanda</h1>
                 </div>
 
