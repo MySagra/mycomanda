@@ -2,12 +2,14 @@
 
 import { Button } from "@/components/ui/button"
 import { ButtonGroup } from "@/components/ui/button-group"
+import { Badge } from "@/components/ui/badge"
 import { UserMenu } from "@/components/commands/header/UserMenu"
 import { useAuth } from "@/hooks/use-auth"
-import { Maximize, Minimize, Moon, Settings, Sun } from "lucide-react"
+import { Maximize, Minimize, Moon, Printer as PrinterIcon, RefreshCw, Settings, Sun } from "lucide-react"
 import { useTheme } from "next-themes"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
+import { usePrinterSelection } from "@/components/commands/monitor/PrinterSelectionContext"
 
 export function Header() {
     const { theme, setTheme } = useTheme()
@@ -15,6 +17,7 @@ export function Header() {
     const [isFullscreen, setIsFullscreen] = useState(false)
     const router = useRouter()
     const { user } = useAuth()
+    const { printer, clear } = usePrinterSelection()
 
     useEffect(() => {
         setMounted(true)
@@ -45,7 +48,24 @@ export function Header() {
                     <h1 className="text-2xl font-bold select-none">MyComanda</h1>
                 </div>
 
-                <div className="flex items-center gap-2 shrink-0">
+                <div className="flex items-center gap-3 shrink-0">
+                    {printer && (
+                        <div className="flex items-center gap-2 pr-3 border-r">
+                            <Badge variant="secondary" className="gap-1">
+                                <PrinterIcon className="h-3.5 w-3.5" />
+                                {printer.name}
+                            </Badge>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="cursor-pointer h-8"
+                                onClick={clear}
+                            >
+                                <RefreshCw className="h-4 w-4" />
+                                Cambia
+                            </Button>
+                        </div>
+                    )}
                     <ButtonGroup>
                         <Button variant="outline" className="cursor-pointer" size="icon" onClick={() => router.push("/settings")}>
                             <Settings className="h-5 w-5" />
