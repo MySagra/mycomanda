@@ -89,7 +89,8 @@ function CompletedList({ printerIds }: { printerIds: string[] }) {
                         </Empty>
                     </div>
                 ) : (
-                    <div className="flex flex-wrap items-start content-start gap-4 p-6">
+                    <div className="grid grid-cols-[repeat(auto-fill,minmax(18rem,1fr))] items-start gap-4 p-6">
+                        {/* Same columns as the live monitor: at least 18rem, stretched to fill the row. */}
                         {orders.map((o) => (
                             <CompletedOrderCard key={o.id} order={o} printerIds={printerIds} onRestore={restore} />
                         ))}

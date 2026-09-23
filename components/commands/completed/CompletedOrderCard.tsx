@@ -38,7 +38,7 @@ export function CompletedOrderCard({ order, printerIds, onRestore }: Props) {
     }
 
     return (
-        <Card className="min-w-72 w-fit max-w-sm">
+        <Card className="min-w-72 w-full">
             <CardHeader className="gap-2">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
