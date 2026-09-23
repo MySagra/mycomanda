@@ -29,7 +29,7 @@ export function KitchenMonitor() {
 }
 
 function MonitorView({ printerIds }: { printerIds: string[] }) {
-    const { orders, state } = useOrderStream({ channel: "printer", printerIds })
+    const { orders, state, removeOrder } = useOrderStream({ channel: "printer", printerIds })
 
     return (
         <div className="flex flex-1 flex-col overflow-hidden">
@@ -39,7 +39,7 @@ function MonitorView({ printerIds }: { printerIds: string[] }) {
                         <Spinner />
                     </div>
                 ) : (
-                    <OrderGrid orders={orders} printerIds={printerIds} />
+                    <OrderGrid orders={orders} printerIds={printerIds} onCompleted={removeOrder} />
                 )}
             </div>
         </div>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import type { SSEOrder } from "./types"
 
 type ConnectionState = "loading" | "connecting" | "open" | "error"
@@ -136,6 +136,20 @@ export function useOrderStream({ channel, printerIds }: Options) {
                 }
             })
 
+            // Completed elsewhere or picked up: the order no longer belongs on the monitor.
+            es.addEventListener("order-status-update", (ev) => {
+                const msg = ev as MessageEvent
+                if (msg.lastEventId) lastEventId = msg.lastEventId
+                markAlive()
+                try {
+                    const data = JSON.parse(msg.data) as { id: string; status: SSEOrder["status"] }
+                    if (data.status === "CONFIRMED") return
+                    setOrders((prev) => prev.filter((o) => o.id !== data.id))
+                } catch (err) {
+                    console.warn("[SSE] parse order-status-update failed", err)
+                }
+            })
+
             es.onerror = () => {
                 console.error("[SSE] error, readyState=", es.readyState)
                 if (es.readyState === EventSource.CLOSED) {
@@ -192,5 +206,9 @@ export function useOrderStream({ channel, printerIds }: Options) {
         }
     }, [channel, printerKey])
 
-    return { orders, state, lastError }
+    const removeOrder = useCallback((id: string) => {
+        setOrders((prev) => prev.filter((o) => o.id !== id))
+    }, [])
+
+    return { orders, state, lastError, removeOrder }
 }

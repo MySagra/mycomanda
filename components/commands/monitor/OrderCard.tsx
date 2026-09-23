@@ -4,11 +4,13 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { Clock, Hash, User, Utensils } from "lucide-react"
+import { cn } from "cn"
 import type { SSEOrder, SSEOrderItem } from "./types"
 
 interface Props {
     order: SSEOrder
     printerIds: string[]
+    pinned: boolean
 }
 
 function formatTime(iso: string) {
@@ -20,12 +22,12 @@ function formatTime(iso: string) {
     }
 }
 
-export function OrderCard({ order, printerIds }: Props) {
+export function OrderCard({ order, printerIds, pinned }: Props) {
     const items = order.orderItems.filter((it) => it.food?.printerId != null && printerIds.includes(it.food.printerId))
     if (items.length === 0) return null
 
     return (
-        <Card className="min-w-72 w-fit">
+        <Card className={cn("min-w-72 w-fit", pinned && "ring-2 ring-primary")}>
             <CardHeader className="gap-2">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                     <div className="flex items-center gap-2">

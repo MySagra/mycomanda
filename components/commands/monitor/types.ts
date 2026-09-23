@@ -34,7 +34,7 @@ export interface SSEOrder {
   createdAt: string;
   confirmedAt: string | null;
   ticketNumber: number | null;
-  status: 'PENDING' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED';
+  status: 'PENDING' | 'CONFIRMED' | 'PARTIAL' | 'COMPLETED' | 'PICKED_UP' | 'CANCELLED';
   paymentMethod: string | null;
   subTotal: string;
   discount: string;
