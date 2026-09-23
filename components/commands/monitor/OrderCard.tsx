@@ -13,6 +13,9 @@ interface Props {
     order: SSEOrder
     printerIds: string[]
     pinned: boolean
+    // Every dish is ready and the order is about to complete itself. The card
+    // shows a faint green track; DraggableOrder draws the countdown over it.
+    ready?: boolean
     // Dish rows respond to taps. Off for the drag ghost and in reorder mode.
     interactive?: boolean
 }
@@ -26,13 +29,19 @@ function formatTime(iso: string) {
     }
 }
 
-export function OrderCard({ order, printerIds, pinned, interactive = false }: Props) {
+export function OrderCard({ order, printerIds, pinned, ready = false, interactive = false }: Props) {
     const progress = useItemProgress()
     const items = order.orderItems.filter((it) => it.food?.printerId != null && printerIds.includes(it.food.printerId))
     if (items.length === 0) return null
 
     return (
-        <Card className={cn("min-w-72 w-fit", pinned && "ring-2 ring-primary")}>
+        <Card
+            className={cn(
+                "min-w-72 w-fit transition-shadow",
+                pinned && "ring-2 ring-primary",
+                ready && "ring-2 ring-green-600/25 dark:ring-green-500/25",
+            )}
+        >
             <CardHeader className="gap-2">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                     <div className="flex items-center gap-2">

@@ -9,7 +9,7 @@ import { Check, Utensils } from "lucide-react"
 import { toast } from "sonner"
 import { DraggableOrder } from "./DraggableOrder"
 import { OrderCard } from "./OrderCard"
-import { useOrderReorder } from "./useOrderReorder"
+import { EXIT_ANIMATION_MS, useOrderReorder } from "./useOrderReorder"
 import { usePointerReorder } from "./usePointerReorder"
 import { clearOrderState } from "./useMonitorState"
 import { patchOrderStatus } from "./serviceDayOrders"
@@ -22,7 +22,7 @@ interface Props {
 }
 
 export function OrderGrid({ orders, printerIds, onCompleted }: Props) {
-    const { pinned, unpinned, pinnedIds, move, togglePin } = useOrderReorder(orders)
+    const { pinned, unpinned, pinnedIds, leavingIds, move, togglePin } = useOrderReorder(orders)
     const { deviceType } = useDeviceType()
     const reorder = usePointerReorder({ mode: deviceType === "tablet" ? "touch" : "mouse", onMove: move })
     const ghostOrder = reorder.ghost && orders.find((o) => o.id === reorder.ghost?.id)
@@ -30,8 +30,9 @@ export function OrderGrid({ orders, printerIds, onCompleted }: Props) {
     async function complete(id: string) {
         try {
             await patchOrderStatus(id, "COMPLETED")
-            clearOrderState(id)
             onCompleted(id)
+            // After the exit animation, which still shows the ready dishes.
+            setTimeout(() => clearOrderState(id), EXIT_ANIMATION_MS)
         } catch (err) {
             console.warn("[order] complete failed", err)
             toast.error("Impossibile completare l'ordine")
@@ -54,6 +55,7 @@ export function OrderGrid({ orders, printerIds, onCompleted }: Props) {
                 pinned={pinnedIds.has(o.id)}
                 reordering={reorder.reordering}
                 dragSource={reorder.ghost?.id === o.id}
+                leaving={leavingIds.has(o.id)}
                 index={index}
                 onReorderPointerDown={(e) => reorder.onCardPointerDown(o.id, e)}
                 onTogglePin={togglePin}

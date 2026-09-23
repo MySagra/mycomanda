@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, type PointerEvent } from "react"
+import { useEffect, useEffectEvent, useState, type PointerEvent } from "react"
 import { Check, GripVertical, Pin } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
@@ -8,7 +8,14 @@ import { useDeviceType } from "@/hooks/use-device-type"
 import { cn } from "cn"
 import { OrderCard } from "./OrderCard"
 import { OrderActionsOverlay } from "./OrderActionsOverlay"
+import { CountdownBorder } from "./CountdownBorder"
+import { EXIT_ANIMATION_MS } from "./useOrderReorder"
+import { useItemProgress } from "./useMonitorState"
 import type { SSEOrder } from "./types"
+
+// Grace period between the last dish marked ready and the automatic completion,
+// long enough to undo a mistaken tap.
+const AUTO_COMPLETE_MS = 5_000
 
 interface Props {
     order: SSEOrder
@@ -18,6 +25,8 @@ interface Props {
     reordering: boolean
     // This card is picked up: a ghost follows the pointer, the card stays as a placeholder.
     dragSource: boolean
+    // The order left the list: the card fades out, then the grid drops it.
+    leaving: boolean
     // Position in the grid, used to desync the wobble between neighbours.
     index: number
     onReorderPointerDown: (e: PointerEvent<HTMLDivElement>) => void
@@ -31,6 +40,7 @@ export function DraggableOrder({
     pinned,
     reordering,
     dragSource,
+    leaving,
     index,
     onReorderPointerDown,
     onTogglePin,
@@ -46,6 +56,22 @@ export function DraggableOrder({
     // Solid colours on hover too: the stock variants fade to translucent ones,
     // which let the card border show through the button.
     const actionClass = "size-11 cursor-pointer rounded-full border-2 shadow-lg [&_svg:not([class*='size-'])]:size-5"
+
+    // Every dish this monitor shows is ready: the card turns green and the order
+    // completes by itself unless a dish is reset first.
+    const progress = useItemProgress()
+    const items = order.orderItems.filter((it) => it.food?.printerId != null && printerIds.includes(it.food.printerId))
+    const allReady = items.length > 0 && items.every((it) => (progress[it.id]?.completed ?? 0) >= it.quantity)
+
+    const autoComplete = useEffectEvent(() => {
+        if (!completing && !leaving) complete()
+    })
+
+    useEffect(() => {
+        if (!allReady) return
+        const timer = setTimeout(autoComplete, AUTO_COMPLETE_MS)
+        return () => clearTimeout(timer)
+    }, [allReady])
 
     async function complete() {
         setCompleting(true)
@@ -65,18 +91,21 @@ export function DraggableOrder({
                 onContextMenu={isTablet ? (e) => e.preventDefault() : undefined}
                 onClick={isTablet && !reordering ? () => setActionsOpen(true) : undefined}
                 style={
-                    reordering
-                        ? {
-                              animationDelay: `${-(index % 4) * 70}ms`,
-                              animationDirection: index % 2 ? "reverse" : "normal",
-                          }
-                        : undefined
+                    leaving
+                        ? { animationDuration: `${EXIT_ANIMATION_MS}ms` }
+                        : reordering
+                          ? {
+                                animationDelay: `${-(index % 4) * 70}ms`,
+                                animationDirection: index % 2 ? "reverse" : "normal",
+                            }
+                          : undefined
                 }
                 className={cn(
                     "relative group w-fit max-w-sm select-none transition-opacity",
                     isTablet ? "[-webkit-touch-callout:none]" : "cursor-grab active:cursor-grabbing",
-                    reordering && "touch-none motion-safe:animate-jiggle",
+                    reordering && !leaving && "touch-none motion-safe:animate-jiggle",
                     dragSource && "opacity-30",
+                    leaving && "pointer-events-none animate-out fade-out-0 zoom-out-90 fill-mode-forwards",
                 )}
             >
                 {!isTablet && (
@@ -119,7 +148,16 @@ export function DraggableOrder({
                         </Button>
                     </div>
                 )}
-                <OrderCard order={order} printerIds={printerIds} pinned={pinned} interactive={!reordering} />
+                <OrderCard order={order} printerIds={printerIds} pinned={pinned} ready={allReady} interactive={!reordering} />
+                {/* Mounted when the order becomes ready, so the countdown restarts with the timer. */}
+                {allReady && (
+                    <CountdownBorder
+                        // The card's rounded-xl: --radius (0.65rem) + 4px.
+                        radius={14.4}
+                        className="animate-border-drain"
+                        style={{ animationDuration: `${AUTO_COMPLETE_MS}ms` }}
+                    />
+                )}
             </div>
             {/* Outside the card: React events bubble through portals, so a tap
                 inside the overlay would otherwise reach the card and reopen it. */}

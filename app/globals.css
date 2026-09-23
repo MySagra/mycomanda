@@ -173,3 +173,21 @@
     100% { translate: 0 0; rotate: 0deg; }
   }
 }
+
+/* A card border that empties like a progress bar: the auto-complete countdown.
+   Works on an SVG stroke with pathLength="100". */
+@theme {
+  --animate-border-drain: border-drain 5s linear forwards;
+  --animate-guide-drain: guide-drain 4s linear infinite;
+
+  @keyframes border-drain {
+    from { stroke-dashoffset: 0; }
+    to { stroke-dashoffset: 100; }
+  }
+
+  /* The guide's looping version: drains, pauses empty, starts again. */
+  @keyframes guide-drain {
+    0%, 8% { stroke-dashoffset: 0; }
+    85%, 100% { stroke-dashoffset: 100; }
+  }
+}

@@ -3,6 +3,7 @@
 import type { ReactNode } from "react"
 import { Check, CheckCheck, Hash, MousePointer2, Pin, Pointer, Printer, RefreshCw, Undo2, X } from "lucide-react"
 import { cn } from "cn"
+import { CountdownBorder } from "@/components/commands/monitor/CountdownBorder"
 
 // Small looping mock-ups of the monitor, drawn with the app's own tokens so
 // they follow the light and dark theme. The motion lives in globals.css.
@@ -44,11 +45,13 @@ function MiniCard({
     )
 }
 
-function MiniRow({ label, fill }: { label: string; fill?: boolean }) {
+function MiniRow({ label, fill, done }: { label: string; fill?: boolean; done?: boolean }) {
     return (
         <div className="relative mt-1 overflow-hidden rounded bg-muted px-1.5 py-1 text-[9px] font-medium">
             {fill && <div className="absolute inset-y-0 left-0 bg-green-600/40 motion-safe:animate-guide-fill" />}
-            <span className="relative">{label}</span>
+            {done && <div className="absolute inset-0 bg-green-600/40" />}
+            <span className={cn("relative", done && "text-muted-foreground line-through")}>{label}</span>
+            {done && <Check className="absolute top-1/2 right-1 size-2.5 -translate-y-1/2 text-green-600" />}
         </div>
     )
 }
@@ -76,6 +79,22 @@ export function DishProgressIllustration({ touch }: { touch: boolean }) {
                     <MiniRow label="1× Patatine" />
                 </MiniCard>
                 <Cursor touch={touch} className="top-9 left-24 motion-safe:animate-guide-tap" />
+            </div>
+        </Frame>
+    )
+}
+
+/** Every dish ready: the green border drains, then the order completes itself. */
+export function AutoCompleteIllustration() {
+    return (
+        <Frame>
+            <div className="relative">
+                <MiniCard code="ABC" className="w-40 ring-2 ring-green-600/25">
+                    <MiniRow label="2× Margherita" done />
+                    <MiniRow label="1× Patatine" done />
+                </MiniCard>
+                {/* MiniCard is rounded-lg: --radius (0.65rem). */}
+                <CountdownBorder radius={10.4} className="motion-safe:animate-guide-drain" />
             </div>
         </Frame>
     )

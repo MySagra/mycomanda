@@ -14,6 +14,7 @@ import { useDeviceType } from "@/hooks/use-device-type"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { cn } from "cn"
 import {
+    AutoCompleteIllustration,
     CompletedIllustration,
     DishProgressIllustration,
     HoverActionsIllustration,
@@ -38,6 +39,13 @@ function buildSteps(touch: boolean): Step[] {
                 ? "Tocca un piatto per segnare una porzione come pronta. Se la quantità è più di 1, tocca una volta per ogni porzione: la riga si riempie fino a diventare verde."
                 : "Clicca su un piatto per segnare una porzione come pronta. Se la quantità è più di 1, clicca una volta per ogni porzione: la riga si riempie fino a diventare verde.",
             image: <DishProgressIllustration touch={touch} />,
+        },
+        {
+            title: "Completamento automatico",
+            text: touch
+                ? "Quando tutti i piatti di una card sono pronti, il bordo diventa verde e si svuota in 5 secondi: allo scadere l'ordine si completa da solo. Hai sbagliato? Tocca di nuovo un piatto prima che il bordo si svuoti."
+                : "Quando tutti i piatti di una card sono pronti, il bordo diventa verde e si svuota in 5 secondi: allo scadere l'ordine si completa da solo. Hai sbagliato? Clicca di nuovo un piatto prima che il bordo si svuoti.",
+            image: <AutoCompleteIllustration />,
         },
         touch
             ? {

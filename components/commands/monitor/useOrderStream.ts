@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { fetchOrder, fetchServiceDayOrders } from "./serviceDayOrders"
 import { clearOrderState } from "./useMonitorState"
+import { EXIT_ANIMATION_MS } from "./useOrderReorder"
 import type { SSEOrder } from "./types"
 
 type ConnectionState = "loading" | "connecting" | "open" | "error"
@@ -52,7 +53,8 @@ export function useOrderStream({ channel, printerIds }: Options) {
 
         function dropOrder(id: string) {
             setOrders((prev) => prev.filter((o) => o.id !== id))
-            clearOrderState(id)
+            // After the exit animation, which still shows the ready dishes.
+            setTimeout(() => clearOrderState(id), EXIT_ANIMATION_MS)
         }
 
         function closeStream() {
