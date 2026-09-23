@@ -11,7 +11,7 @@ import { DraggableOrder } from "./DraggableOrder"
 import { OrderCard } from "./OrderCard"
 import { useOrderReorder } from "./useOrderReorder"
 import { usePointerReorder } from "./usePointerReorder"
-import { clearOrderProgress } from "./useItemProgress"
+import { clearOrderState } from "./useMonitorState"
 import type { SSEOrder } from "./types"
 
 interface Props {
@@ -34,7 +34,7 @@ export function OrderGrid({ orders, printerIds, onCompleted }: Props) {
                 body: JSON.stringify({ status: "COMPLETED" }),
             })
             if (!res.ok) throw new Error(`HTTP ${res.status}`)
-            clearOrderProgress(id)
+            clearOrderState(id)
             onCompleted(id)
         } catch (err) {
             console.warn("[order] complete failed", err)
@@ -89,7 +89,8 @@ export function OrderGrid({ orders, printerIds, onCompleted }: Props) {
                     <div className="flex flex-wrap items-start content-start gap-x-4 gap-y-8">
                         {pinned.map(renderOrder)}
                     </div>
-                    {unpinned.length > 0 && <Separator />}
+                    {/* Extra room above: the round actions of the next row stick out of their cards. */}
+                    {unpinned.length > 0 && <Separator className="mt-2 mb-4 h-0.5 w-full rounded-full bg-primary/60" />}
                 </>
             )}
             {unpinned.length > 0 && (

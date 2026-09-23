@@ -6,7 +6,7 @@ import { Separator } from "@/components/ui/separator"
 import type { KeyboardEvent, MouseEvent } from "react"
 import { Check, Clock, Hash, User, Utensils } from "lucide-react"
 import { cn } from "cn"
-import { advanceItem, useItemProgress } from "./useItemProgress"
+import { advanceItem, useItemProgress } from "./useMonitorState"
 import type { SSEOrder, SSEOrderItem } from "./types"
 
 interface Props {

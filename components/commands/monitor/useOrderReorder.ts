@@ -1,11 +1,15 @@
 "use client"
 
 import { useEffect, useMemo, useRef, useState } from "react"
+import { togglePinnedOrder, usePinnedOrders } from "./useMonitorState"
 import type { SSEOrder } from "./types"
 
 export function useOrderReorder(orders: SSEOrder[]) {
     const [order, setOrder] = useState<string[]>([])
-    const [pinnedIds, setPinnedIds] = useState<Set<string>>(new Set())
+    // Pins are persisted, so they survive a reload. They are not pruned against
+    // `orders`: an empty list after a failed history fetch would wipe them.
+    const pinnedOrders = usePinnedOrders()
+    const pinnedIds = useMemo(() => new Set(Object.keys(pinnedOrders)), [pinnedOrders])
     const seenRef = useRef<Set<string>>(new Set())
 
     useEffect(() => {
@@ -18,11 +22,6 @@ export function useOrderReorder(orders: SSEOrder[]) {
                 .filter((id) => !seenRef.current.has(id))
             newIds.forEach((id) => seenRef.current.add(id))
             return [...newIds, ...kept]
-        })
-
-        setPinnedIds((prev) => {
-            if ([...prev].every((id) => currentIds.has(id))) return prev
-            return new Set([...prev].filter((id) => currentIds.has(id)))
         })
 
         seenRef.current.forEach((id) => {
@@ -56,12 +55,7 @@ export function useOrderReorder(orders: SSEOrder[]) {
     // goes back to the front of the regular grid.
     function togglePin(id: string) {
         setOrder((prev) => [id, ...prev.filter((x) => x !== id)])
-        setPinnedIds((prev) => {
-            const next = new Set(prev)
-            if (next.has(id)) next.delete(id)
-            else next.add(id)
-            return next
-        })
+        togglePinnedOrder(id)
     }
 
     return { pinned, unpinned, pinnedIds, move, togglePin }
