@@ -151,7 +151,14 @@ export function DraggableOrder({
                         </Button>
                     </div>
                 )}
-                <OrderCard order={order} printerIds={printerIds} pinned={pinned} ready={allReady} interactive={!reordering} />
+                <OrderCard
+                    order={order}
+                    printerIds={printerIds}
+                    pinned={pinned}
+                    ready={allReady}
+                    interactive={!reordering}
+                    roomForActions={!isTablet}
+                />
                 {/* Mounted when the order becomes ready, so the countdown restarts with the timer. */}
                 {allReady && (
                     <CountdownBorder

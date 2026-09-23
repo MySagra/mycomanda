@@ -106,7 +106,12 @@ export function OrderGrid({ orders, printerIds, onCompleted }: Props) {
                         width: reorder.ghost.width,
                     }}
                 >
-                    <OrderCard order={ghostOrder} printerIds={printerIds} pinned={pinnedIds.has(ghostOrder.id)} />
+                    <OrderCard
+                        order={ghostOrder}
+                        printerIds={printerIds}
+                        pinned={pinnedIds.has(ghostOrder.id)}
+                        roomForActions={deviceType !== "tablet"}
+                    />
                 </div>
             )}
 

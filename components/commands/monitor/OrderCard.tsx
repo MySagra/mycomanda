@@ -18,6 +18,9 @@ interface Props {
     ready?: boolean
     // Dish rows respond to taps. Off for the drag ghost and in reorder mode.
     interactive?: boolean
+    // Extra space above the header for the round actions that straddle the top
+    // edge on desktop, so they do not cover the time.
+    roomForActions?: boolean
 }
 
 function formatTime(iso: string) {
@@ -29,7 +32,7 @@ function formatTime(iso: string) {
     }
 }
 
-export function OrderCard({ order, printerIds, pinned, ready = false, interactive = false }: Props) {
+export function OrderCard({ order, printerIds, pinned, ready = false, interactive = false, roomForActions = false }: Props) {
     const progress = useItemProgress()
     const items = order.orderItems.filter((it) => it.food?.printerId != null && printerIds.includes(it.food.printerId))
     if (items.length === 0) return null
@@ -42,7 +45,7 @@ export function OrderCard({ order, printerIds, pinned, ready = false, interactiv
                 ready && "ring-2 ring-green-600/25 dark:ring-green-500/25",
             )}
         >
-            <CardHeader className="gap-2">
+            <CardHeader className={cn("gap-2", roomForActions && "pt-4")}>
                 <div className="flex flex-wrap items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
                         <Badge variant="default" className="text-base px-2.5 py-0.5">
