@@ -172,7 +172,7 @@ export function DraggableOrder({
                         </Button>
                     </div>
                 )}
-                <OrderCard order={order} printerIds={printerIds} pinned={pinned} />
+                <OrderCard order={order} printerIds={printerIds} pinned={pinned} interactive={!reordering} />
             </div>
             {/* Outside the card: React events bubble through portals, so a tap
                 inside the overlay would otherwise reach the card and reopen it. */}

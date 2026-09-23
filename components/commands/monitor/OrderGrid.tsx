@@ -11,6 +11,7 @@ import { DraggableOrder } from "./DraggableOrder"
 import { OrderCard } from "./OrderCard"
 import { useOrderReorder } from "./useOrderReorder"
 import { useTouchReorder } from "./useTouchReorder"
+import { clearOrderProgress } from "./useItemProgress"
 import type { SSEOrder } from "./types"
 
 interface Props {
@@ -33,6 +34,7 @@ export function OrderGrid({ orders, printerIds, onCompleted }: Props) {
                 body: JSON.stringify({ status: "COMPLETED" }),
             })
             if (!res.ok) throw new Error(`HTTP ${res.status}`)
+            clearOrderProgress(id)
             onCompleted(id)
         } catch (err) {
             console.warn("[order] complete failed", err)

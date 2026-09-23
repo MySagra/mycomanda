@@ -3,14 +3,18 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { Clock, Hash, User, Utensils } from "lucide-react"
+import type { KeyboardEvent, MouseEvent } from "react"
+import { Check, Clock, Hash, User, Utensils } from "lucide-react"
 import { cn } from "cn"
+import { advanceItem, useItemProgress } from "./useItemProgress"
 import type { SSEOrder, SSEOrderItem } from "./types"
 
 interface Props {
     order: SSEOrder
     printerIds: string[]
     pinned: boolean
+    // Dish rows respond to taps. Off for the drag ghost and in reorder mode.
+    interactive?: boolean
 }
 
 function formatTime(iso: string) {
@@ -22,7 +26,8 @@ function formatTime(iso: string) {
     }
 }
 
-export function OrderCard({ order, printerIds, pinned }: Props) {
+export function OrderCard({ order, printerIds, pinned, interactive = false }: Props) {
+    const progress = useItemProgress()
     const items = order.orderItems.filter((it) => it.food?.printerId != null && printerIds.includes(it.food.printerId))
     if (items.length === 0) return null
 
@@ -65,22 +70,81 @@ export function OrderCard({ order, printerIds, pinned }: Props) {
 
             <CardContent className="flex flex-col gap-2">
                 {items.map((it) => (
-                    <OrderItemRow key={it.id} item={it} />
+                    <OrderItemRow
+                        key={it.id}
+                        item={it}
+                        completed={Math.min(progress[it.id]?.completed ?? 0, it.quantity)}
+                        onAdvance={interactive ? () => advanceItem(order.id, it) : undefined}
+                    />
                 ))}
             </CardContent>
         </Card>
     )
 }
 
-function OrderItemRow({ item }: { item: SSEOrderItem }) {
+interface RowProps {
+    item: SSEOrderItem
+    completed: number
+    onAdvance?: () => void
+}
+
+// The row itself is the progress bar: its background fills one portion per tap.
+function OrderItemRow({ item, completed, onAdvance }: RowProps) {
+    const done = completed >= item.quantity
+    const percent = (completed / item.quantity) * 100
+
+    function advance(e: MouseEvent | KeyboardEvent) {
+        // On tablets a tap on the card opens the order actions; a tap on a dish must not.
+        e.stopPropagation()
+        onAdvance?.()
+    }
+
     return (
-        <div className="flex flex-col gap-1 rounded-md bg-muted/50 px-3 py-2">
-            <div className="flex items-baseline gap-2">
+        <div
+            role={onAdvance ? "button" : undefined}
+            tabIndex={onAdvance ? 0 : undefined}
+            aria-label={onAdvance ? `${item.food?.name ?? "Piatto"}: ${completed} di ${item.quantity} pronti` : undefined}
+            onClick={onAdvance ? advance : undefined}
+            onKeyDown={
+                onAdvance
+                    ? (e) => {
+                          if (e.key !== "Enter" && e.key !== " ") return
+                          e.preventDefault()
+                          advance(e)
+                      }
+                    : undefined
+            }
+            className={cn(
+                "relative flex flex-col gap-1 overflow-hidden rounded-md bg-muted/50 px-3 py-2 transition-colors",
+                onAdvance && "cursor-pointer hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none",
+                done && "ring-1 ring-green-600/50",
+            )}
+        >
+            <div
+                aria-hidden
+                className={cn(
+                    "absolute inset-y-0 left-0 transition-[width] duration-300 ease-out",
+                    done ? "bg-green-600/30" : "bg-green-600/20",
+                )}
+                style={{ width: `${percent}%` }}
+            />
+            <div className="relative flex items-baseline gap-2">
                 <span className="text-lg font-bold tabular-nums">{item.quantity}×</span>
-                <span className="text-base font-medium flex-1">{item.food?.name ?? "—"}</span>
+                <span className={cn("text-base font-medium flex-1", done && "text-muted-foreground line-through")}>
+                    {item.food?.name ?? "—"}
+                </span>
+                {done ? (
+                    <Check className="size-5 self-center text-green-600 dark:text-green-500" />
+                ) : (
+                    item.quantity > 1 && (
+                        <span className="text-sm font-medium tabular-nums text-muted-foreground">
+                            {completed}/{item.quantity}
+                        </span>
+                    )
+                )}
             </div>
             {item.notes && (
-                <div className="text-sm text-muted-foreground italic pl-7">
+                <div className="relative text-sm text-muted-foreground italic pl-7">
                     {item.notes}
                 </div>
             )}
