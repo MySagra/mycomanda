@@ -3,6 +3,12 @@ import { AUTH_COOKIE_NAME, getAuthToken } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
+// Statuses the kitchen can list, each sorted by the moment it was reached.
+const SORT_BY_STATUS: Record<string, string> = {
+  CONFIRMED: 'confirmedAt',
+  COMPLETED: 'completedAt',
+};
+
 // Backend caps `limit` at 100.
 const PAGE_SIZE = 100;
 const MAX_PAGES = 20;
@@ -29,9 +35,10 @@ interface OrdersPage {
 }
 
 /**
- * Orders confirmed in the current service day, fetched before the client opens
- * the SSE channel. The backend returns order items without the food, so foods
- * are loaded first and joined in to match the SSE `confirmed-order` payload.
+ * Orders of the current service day in one status: CONFIRMED (the default) is
+ * fetched before the client opens the SSE channel, COMPLETED feeds the
+ * completed orders page. The backend returns order items without the food, so
+ * foods are loaded first and joined in to match the SSE `confirmed-order` payload.
  */
 export async function GET(req: NextRequest) {
   const token = await getAuthToken();
@@ -43,6 +50,12 @@ export async function GET(req: NextRequest) {
   const dateTo = req.nextUrl.searchParams.get('dateTo');
   if (!dateFrom || !dateTo) {
     return NextResponse.json({ message: 'dateFrom and dateTo are required' }, { status: 400 });
+  }
+
+  const status = req.nextUrl.searchParams.get('status') ?? 'CONFIRMED';
+  const sortBy = SORT_BY_STATUS[status];
+  if (!sortBy) {
+    return NextResponse.json({ message: 'Invalid status' }, { status: 400 });
   }
 
   const headers = { Cookie: `${AUTH_COOKIE_NAME}=${token}` };
@@ -59,9 +72,9 @@ export async function GET(req: NextRequest) {
     const params = new URLSearchParams({
       page: String(page),
       limit: String(PAGE_SIZE),
-      sortBy: 'confirmedAt',
+      sortBy,
       onlyDiscounted: 'false',
-      status: 'CONFIRMED',
+      status,
       dateFrom,
       dateTo,
       include: 'items',

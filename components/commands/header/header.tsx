@@ -5,9 +5,9 @@ import { ButtonGroup } from "@/components/ui/button-group"
 import { Badge } from "@/components/ui/badge"
 import { UserMenu } from "@/components/commands/header/UserMenu"
 import { useAuth } from "@/hooks/use-auth"
-import { Maximize, Minimize, Moon, Printer as PrinterIcon, RefreshCw, Settings, Sun } from "lucide-react"
+import { CheckCheck, LayoutGrid, Maximize, Minimize, Moon, Printer as PrinterIcon, RefreshCw, Settings, Sun } from "lucide-react"
 import { useTheme } from "next-themes"
-import { useRouter } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { usePrinterSelection } from "@/components/commands/monitor/PrinterSelectionContext"
 
@@ -16,6 +16,7 @@ export function Header() {
     const [mounted, setMounted] = useState(false)
     const [isFullscreen, setIsFullscreen] = useState(false)
     const router = useRouter()
+    const onCompletedPage = usePathname().startsWith("/commands/completed")
     const { user } = useAuth()
     const { printers, setDialogOpen } = usePrinterSelection()
 
@@ -70,6 +71,14 @@ export function Header() {
                             </Button>
                         </div>
                     )}
+                    <Button
+                        variant="outline"
+                        className="cursor-pointer"
+                        onClick={() => router.push(onCompletedPage ? "/commands" : "/commands/completed")}
+                    >
+                        {onCompletedPage ? <LayoutGrid className="h-4 w-4" /> : <CheckCheck className="h-4 w-4" />}
+                        {onCompletedPage ? "Monitor" : "Completati"}
+                    </Button>
                     <ButtonGroup>
                         <Button variant="outline" className="cursor-pointer" size="icon" onClick={() => router.push("/settings")}>
                             <Settings className="h-5 w-5" />

@@ -1,6 +1,8 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
+import { fetchOrder, fetchServiceDayOrders } from "./serviceDayOrders"
+import { clearOrderState } from "./useMonitorState"
 import type { SSEOrder } from "./types"
 
 type ConnectionState = "loading" | "connecting" | "open" | "error"
@@ -12,26 +14,14 @@ interface Options {
 
 const MAX_ORDERS = 100
 
+// Statuses that take an order off the monitor.
+const CLOSED_STATUSES = new Set<SSEOrder["status"]>(["COMPLETED", "PICKED_UP", "CANCELLED"])
+
 // The proxy sends a keepalive event every 15s. Cloudflare Tunnel can drop the
 // connection without the browser ever firing `error`, so if nothing at all
 // arrives within this window we treat the stream as dead and rebuild it.
 const STALE_TIMEOUT_MS = 45_000
 const RECONNECT_DELAY_MS = 3_000
-
-// The backend closes the service day at 07:00, so a day runs from 07:00 to
-// 06:59:59.999 of the next calendar day. Before 07:00 we are still in the
-// service day that started yesterday morning.
-const SERVICE_DAY_START_HOUR = 7
-
-function serviceDayRange(now: Date) {
-    const dateFrom = new Date(now)
-    dateFrom.setHours(SERVICE_DAY_START_HOUR, 0, 0, 0)
-    if (now < dateFrom) dateFrom.setDate(dateFrom.getDate() - 1)
-    const dateTo = new Date(dateFrom)
-    dateTo.setDate(dateTo.getDate() + 1)
-    dateTo.setMilliseconds(-1)
-    return { dateFrom, dateTo }
-}
 
 export function useOrderStream({ channel, printerIds }: Options) {
     const [orders, setOrders] = useState<SSEOrder[]>([])
@@ -51,6 +41,19 @@ export function useOrderStream({ channel, printerIds }: Options) {
         let staleTimer: ReturnType<typeof setTimeout> | undefined
         let reconnectTimer: ReturnType<typeof setTimeout> | undefined
         let lastEventId: string | null = null
+
+        function addOrder(order: SSEOrder) {
+            if (!isForSelected(order)) return
+            setOrders((prev) => {
+                const dedup = prev.filter((o) => o.id !== order.id)
+                return [order, ...dedup].slice(0, MAX_ORDERS)
+            })
+        }
+
+        function dropOrder(id: string) {
+            setOrders((prev) => prev.filter((o) => o.id !== id))
+            clearOrderState(id)
+        }
 
         function closeStream() {
             esRef.current?.close()
@@ -113,12 +116,7 @@ export function useOrderStream({ channel, printerIds }: Options) {
                 if (msg.lastEventId) lastEventId = msg.lastEventId
                 markAlive()
                 try {
-                    const data = JSON.parse(msg.data) as SSEOrder
-                    if (!isForSelected(data)) return
-                    setOrders((prev) => {
-                        const dedup = prev.filter((o) => o.id !== data.id)
-                        return [data, ...dedup].slice(0, MAX_ORDERS)
-                    })
+                    addOrder(JSON.parse(msg.data) as SSEOrder)
                 } catch (err) {
                     console.warn("[SSE] parse confirmed-order failed", err)
                 }
@@ -129,24 +127,33 @@ export function useOrderStream({ channel, printerIds }: Options) {
                 if (msg.lastEventId) lastEventId = msg.lastEventId
                 markAlive()
                 try {
-                    const data = JSON.parse(msg.data) as { orderId: string }
-                    setOrders((prev) => prev.filter((o) => o.id !== data.orderId))
+                    // The ticket channel sends `id`, the printer channel `orderId`.
+                    const data = JSON.parse(msg.data) as { id?: string; orderId?: string }
+                    const id = data.id ?? data.orderId
+                    if (id) dropOrder(id)
                 } catch (err) {
                     console.warn("[SSE] parse order-cancelled failed", err)
                 }
             })
 
-            // Completed elsewhere or picked up: the order no longer belongs on the monitor.
-            es.addEventListener("order-status-update", (ev) => {
+            // Payload: { id, ticketNumber, displayCode, status }. A completed order
+            // leaves the monitor; one sent back to CONFIRMED (from the completed
+            // orders page, on any device) returns, fetched in full since the
+            // event carries no items.
+            es.addEventListener("order-status-update", async (ev) => {
                 const msg = ev as MessageEvent
                 if (msg.lastEventId) lastEventId = msg.lastEventId
                 markAlive()
                 try {
                     const data = JSON.parse(msg.data) as { id: string; status: SSEOrder["status"] }
-                    if (data.status === "CONFIRMED") return
-                    setOrders((prev) => prev.filter((o) => o.id !== data.id))
+                    if (CLOSED_STATUSES.has(data.status)) {
+                        dropOrder(data.id)
+                    } else if (data.status === "CONFIRMED") {
+                        const order = await fetchOrder(data.id)
+                        if (!cancelled) addOrder(order)
+                    }
                 } catch (err) {
-                    console.warn("[SSE] parse order-status-update failed", err)
+                    console.warn("[SSE] order-status-update failed", err)
                 }
             })
 
@@ -165,14 +172,7 @@ export function useOrderStream({ channel, printerIds }: Options) {
             setState("loading")
             setLastError(null)
             try {
-                const { dateFrom, dateTo } = serviceDayRange(new Date())
-                const params = new URLSearchParams({
-                    dateFrom: dateFrom.toISOString(),
-                    dateTo: dateTo.toISOString(),
-                })
-                const res = await fetch(`/api/orders/history?${params}`, { cache: "no-store" })
-                if (!res.ok) throw new Error(`HTTP ${res.status}`)
-                const history = (await res.json()) as SSEOrder[]
+                const history = await fetchServiceDayOrders("CONFIRMED")
                 if (cancelled) return
                 const filtered = history.filter(isForSelected)
                 setOrders(filtered.slice(0, MAX_ORDERS))

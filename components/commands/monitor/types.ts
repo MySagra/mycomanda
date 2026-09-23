@@ -33,6 +33,8 @@ export interface SSEOrder {
   customer: string | null;
   createdAt: string;
   confirmedAt: string | null;
+  // Present in /v1/orders responses, not in the SSE payload.
+  completedAt?: string | null;
   ticketNumber: number | null;
   status: 'PENDING' | 'CONFIRMED' | 'PARTIAL' | 'COMPLETED' | 'PICKED_UP' | 'CANCELLED';
   paymentMethod: string | null;

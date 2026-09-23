@@ -12,6 +12,7 @@ import { OrderCard } from "./OrderCard"
 import { useOrderReorder } from "./useOrderReorder"
 import { usePointerReorder } from "./usePointerReorder"
 import { clearOrderState } from "./useMonitorState"
+import { patchOrderStatus } from "./serviceDayOrders"
 import type { SSEOrder } from "./types"
 
 interface Props {
@@ -28,12 +29,7 @@ export function OrderGrid({ orders, printerIds, onCompleted }: Props) {
 
     async function complete(id: string) {
         try {
-            const res = await fetch(`/api/orders/${encodeURIComponent(id)}`, {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ status: "COMPLETED" }),
-            })
-            if (!res.ok) throw new Error(`HTTP ${res.status}`)
+            await patchOrderStatus(id, "COMPLETED")
             clearOrderState(id)
             onCompleted(id)
         } catch (err) {

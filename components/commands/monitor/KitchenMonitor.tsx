@@ -29,7 +29,7 @@ export function KitchenMonitor() {
 }
 
 function MonitorView({ printerIds }: { printerIds: string[] }) {
-    const { orders, state, removeOrder } = useOrderStream({ channel: "printer", printerIds })
+    const { orders, state, removeOrder } = useOrderStream({ channel: "ticket", printerIds })
 
     return (
         <div className="flex flex-1 flex-col overflow-hidden">

@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 export const fetchCache = 'force-no-store';
 
-const ALLOWED = new Set(['cashier', 'display', 'printer']);
+const ALLOWED = new Set(['cashier', 'display', 'printer', 'ticket']);
 
 /**
  * Cloudflare Tunnel re-chunks the upstream body at arbitrary byte offsets, so a
