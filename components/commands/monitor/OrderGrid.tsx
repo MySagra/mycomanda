@@ -21,6 +21,10 @@ interface Props {
     onCompleted: (id: string) => void
 }
 
+// Columns never narrower than a card's minimum width (18rem), as many as fit,
+// stretched to fill the row. Pinned and regular rows share it, so they line up.
+const GRID_CLASS = "grid grid-cols-[repeat(auto-fill,minmax(18rem,1fr))] items-start gap-x-4 gap-y-8"
+
 export function OrderGrid({ orders, printerIds, onCompleted }: Props) {
     const { pinned, unpinned, pinnedIds, leavingIds, move, togglePin } = useOrderReorder(orders)
     const { deviceType } = useDeviceType()
@@ -84,7 +88,7 @@ export function OrderGrid({ orders, printerIds, onCompleted }: Props) {
         <div className="flex min-h-full flex-col gap-4 p-6 pt-8" onClick={onGridClick}>
             {pinned.length > 0 && (
                 <>
-                    <div className="flex flex-wrap items-start content-start gap-x-4 gap-y-8">
+                    <div className={GRID_CLASS}>
                         {pinned.map(renderOrder)}
                     </div>
                     {/* Extra room above: the round actions of the next row stick out of their cards. */}
@@ -92,7 +96,7 @@ export function OrderGrid({ orders, printerIds, onCompleted }: Props) {
                 </>
             )}
             {unpinned.length > 0 && (
-                <div className="flex flex-wrap items-start content-start gap-x-4 gap-y-8">
+                <div className={GRID_CLASS}>
                     {unpinned.map(renderOrder)}
                 </div>
             )}

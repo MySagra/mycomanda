@@ -104,7 +104,7 @@ export function DraggableOrder({
                           : undefined
                 }
                 className={cn(
-                    "relative group w-fit max-w-sm select-none transition-opacity",
+                    "relative group w-full select-none transition-opacity",
                     isTablet ? "[-webkit-touch-callout:none]" : "cursor-grab active:cursor-grabbing",
                     reordering && !leaving && "touch-none motion-safe:animate-jiggle",
                     dragSource && "opacity-30",

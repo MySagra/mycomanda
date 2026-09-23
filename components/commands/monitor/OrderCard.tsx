@@ -40,7 +40,7 @@ export function OrderCard({ order, printerIds, pinned, ready = false, interactiv
     return (
         <Card
             className={cn(
-                "min-w-72 w-fit transition-shadow",
+                "min-w-72 w-full transition-shadow",
                 pinned && "ring-2 ring-primary",
                 ready && "ring-2 ring-green-600/25 dark:ring-green-500/25",
             )}
