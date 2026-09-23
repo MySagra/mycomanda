@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, type DragEvent, type PointerEvent } from "react"
+import { useState, type PointerEvent } from "react"
 import { Check, GripVertical, Pin } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
@@ -10,20 +10,17 @@ import { OrderCard } from "./OrderCard"
 import { OrderActionsOverlay } from "./OrderActionsOverlay"
 import type { SSEOrder } from "./types"
 
-const MIME = "application/x-order-id"
-
 interface Props {
     order: SSEOrder
     printerIds: string[]
     pinned: boolean
     // Tablet reorder mode: every card wobbles and a tap no longer opens the actions.
     reordering: boolean
-    // This card is picked up: a ghost follows the finger, the card stays as a placeholder.
+    // This card is picked up: a ghost follows the pointer, the card stays as a placeholder.
     dragSource: boolean
     // Position in the grid, used to desync the wobble between neighbours.
     index: number
-    onTouchPointerDown: (e: PointerEvent<HTMLDivElement>) => void
-    onMove: (fromId: string, toId: string) => void
+    onReorderPointerDown: (e: PointerEvent<HTMLDivElement>) => void
     onTogglePin: (id: string) => void
     onComplete: (id: string) => Promise<void>
 }
@@ -35,13 +32,10 @@ export function DraggableOrder({
     reordering,
     dragSource,
     index,
-    onTouchPointerDown,
-    onMove,
+    onReorderPointerDown,
     onTogglePin,
     onComplete,
 }: Props) {
-    const [dragging, setDragging] = useState(false)
-    const [over, setOver] = useState(false)
     const [completing, setCompleting] = useState(false)
     const [actionsOpen, setActionsOpen] = useState(false)
     const { deviceType } = useDeviceType()
@@ -62,57 +56,11 @@ export function DraggableOrder({
         }
     }
 
-    function onDragStart(e: DragEvent<HTMLDivElement>) {
-        e.dataTransfer.setData(MIME, order.id)
-        e.dataTransfer.setData("text/plain", order.id)
-        e.dataTransfer.effectAllowed = "move"
-        setDragging(true)
-    }
-
-    function onDragEnd() {
-        setDragging(false)
-        setOver(false)
-    }
-
-    function onDragOver(e: DragEvent<HTMLDivElement>) {
-        e.preventDefault()
-        e.stopPropagation()
-        e.dataTransfer.dropEffect = "move"
-        if (!dragging && !over) setOver(true)
-    }
-
-    function onDragEnter(e: DragEvent<HTMLDivElement>) {
-        e.preventDefault()
-        if (!dragging) setOver(true)
-    }
-
-    function onDragLeave(e: DragEvent<HTMLDivElement>) {
-        if (e.currentTarget.contains(e.relatedTarget as Node)) return
-        setOver(false)
-    }
-
-    function onDrop(e: DragEvent<HTMLDivElement>) {
-        e.preventDefault()
-        e.stopPropagation()
-        setOver(false)
-        const fromId = e.dataTransfer.getData(MIME) || e.dataTransfer.getData("text/plain")
-        if (!fromId) return
-        onMove(fromId, order.id)
-    }
-
     return (
         <>
             <div
                 data-order-id={order.id}
-                // Tablets reorder with the long press below; native drag would clash with it.
-                draggable={!isTablet}
-                onDragStart={onDragStart}
-                onDragEnd={onDragEnd}
-                onDragOver={onDragOver}
-                onDragEnter={onDragEnter}
-                onDragLeave={onDragLeave}
-                onDrop={onDrop}
-                onPointerDown={isTablet ? onTouchPointerDown : undefined}
+                onPointerDown={onReorderPointerDown}
                 // Long press would otherwise open the system context menu.
                 onContextMenu={isTablet ? (e) => e.preventDefault() : undefined}
                 onClick={isTablet && !reordering ? () => setActionsOpen(true) : undefined}
@@ -128,8 +76,7 @@ export function DraggableOrder({
                     "relative group w-fit max-w-sm select-none transition-opacity",
                     isTablet ? "[-webkit-touch-callout:none]" : "cursor-grab active:cursor-grabbing",
                     reordering && "touch-none motion-safe:animate-jiggle",
-                    (dragging || dragSource) && "opacity-30",
-                    over && "ring-2 ring-primary rounded-xl",
+                    dragSource && "opacity-30",
                 )}
             >
                 {!isTablet && (
