@@ -136,3 +136,40 @@
     }
   }
 }
+
+/* Looping demos in the usage guide. Each lasts one 3.2s cycle. */
+@theme {
+  --animate-guide-fill: guide-fill 3.2s ease-in-out infinite;
+  --animate-guide-tap: guide-tap 3.2s ease-in-out infinite;
+  --animate-guide-reveal: guide-reveal 3.2s ease-in-out infinite;
+  --animate-guide-drag: guide-drag 3.2s ease-in-out infinite;
+
+  /* A dish row filling up in two taps. */
+  @keyframes guide-fill {
+    0%, 25% { width: 0%; }
+    35%, 60% { width: 50%; }
+    70%, 92% { width: 100%; }
+    100% { width: 0%; }
+  }
+
+  /* The pointer pressing at the two taps of guide-fill. */
+  @keyframes guide-tap {
+    0%, 26%, 36%, 61%, 71%, 100% { scale: 1; }
+    31%, 66% { scale: 0.8; }
+  }
+
+  /* Hidden, then shown for most of the cycle: buttons on hover, the tablet overlay. */
+  @keyframes guide-reveal {
+    0%, 30% { opacity: 0; scale: 0.9; }
+    40%, 88% { opacity: 1; scale: 1; }
+    100% { opacity: 0; scale: 0.9; }
+  }
+
+  /* A card picked up and carried one slot to the right. */
+  @keyframes guide-drag {
+    0%, 20% { translate: 0 0; rotate: 0deg; }
+    30% { translate: 0 -6px; rotate: 2deg; }
+    65%, 85% { translate: 8rem -6px; rotate: 2deg; }
+    100% { translate: 0 0; rotate: 0deg; }
+  }
+}

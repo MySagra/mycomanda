@@ -5,11 +5,12 @@ import { ButtonGroup } from "@/components/ui/button-group"
 import { Badge } from "@/components/ui/badge"
 import { UserMenu } from "@/components/commands/header/UserMenu"
 import { useAuth } from "@/hooks/use-auth"
-import { CheckCheck, LayoutGrid, Maximize, Minimize, Moon, Printer as PrinterIcon, RefreshCw, Settings, Sun } from "lucide-react"
+import { CheckCheck, CircleHelp, LayoutGrid, Maximize, Minimize, Moon, Printer as PrinterIcon, RefreshCw, Settings, Sun } from "lucide-react"
 import { useTheme } from "next-themes"
 import { usePathname, useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { usePrinterSelection } from "@/components/commands/monitor/PrinterSelectionContext"
+import { useGuide } from "@/components/commands/guide/GuideContext"
 
 export function Header() {
     const { theme, setTheme } = useTheme()
@@ -19,6 +20,7 @@ export function Header() {
     const onCompletedPage = usePathname().startsWith("/commands/completed")
     const { user } = useAuth()
     const { printers, setDialogOpen } = usePrinterSelection()
+    const { openGuide } = useGuide()
 
     useEffect(() => {
         setMounted(true)
@@ -80,6 +82,9 @@ export function Header() {
                         {onCompletedPage ? "Monitor" : "Completati"}
                     </Button>
                     <ButtonGroup>
+                        <Button variant="outline" className="cursor-pointer" size="icon" onClick={openGuide} title="Guida">
+                            <CircleHelp className="h-5 w-5" />
+                        </Button>
                         <Button variant="outline" className="cursor-pointer" size="icon" onClick={() => router.push("/settings")}>
                             <Settings className="h-5 w-5" />
                         </Button>

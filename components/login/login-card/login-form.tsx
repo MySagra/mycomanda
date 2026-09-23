@@ -9,6 +9,7 @@ import { useState } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm, FormProvider } from "react-hook-form"
 import { toast } from "sonner"
+import { markGuidePending } from "@/components/commands/guide/GuideContext"
 import { login as loginAction } from "@/actions/auth"
 import { Eye, EyeOff } from "lucide-react"
 import z from "zod"
@@ -37,6 +38,7 @@ export function LoginForm() {
         try {
             const result = await loginAction(values.username, values.password);
             if (result.success) {
+                markGuidePending();
                 await new Promise(resolve => setTimeout(resolve, 100));
                 window.location.href = '/commands';
             } else {
