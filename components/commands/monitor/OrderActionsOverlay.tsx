@@ -60,7 +60,7 @@ export function OrderActionsOverlay({ order, open, pinned, completing, onOpenCha
                             variant={pinned ? "default" : "outline"}
                             className={cn(
                                 enter,
-                                "zoom-in-90 delay-75 h-full cursor-pointer flex-col gap-4 rounded-2xl border-2 text-2xl shadow-2xl",
+                                "zoom-in-90 [--tw-animation-delay:75ms] h-full cursor-pointer flex-col gap-4 rounded-2xl border-2 text-2xl shadow-2xl",
                                 !pinned && "bg-background dark:bg-secondary dark:hover:bg-secondary dark:hover:brightness-125",
                             )}
                             onClick={onTogglePin}
@@ -72,7 +72,7 @@ export function OrderActionsOverlay({ order, open, pinned, completing, onOpenCha
                         <Button
                             className={cn(
                                 enter,
-                                "zoom-in-90 delay-150 h-full cursor-pointer flex-col gap-4 rounded-2xl border-2 bg-green-600 text-2xl text-white shadow-2xl hover:bg-green-700",
+                                "zoom-in-90 [--tw-animation-delay:150ms] h-full cursor-pointer flex-col gap-4 rounded-2xl border-2 bg-green-600 text-2xl text-white shadow-2xl hover:bg-green-700",
                             )}
                             onClick={onComplete}
                             disabled={completing}
@@ -86,7 +86,7 @@ export function OrderActionsOverlay({ order, open, pinned, completing, onOpenCha
                         variant="outline"
                         className={cn(
                             enter,
-                            "slide-in-from-bottom-6 delay-200 h-24 cursor-pointer gap-3 rounded-2xl border-2 bg-background text-2xl shadow-2xl dark:bg-secondary dark:hover:bg-secondary dark:hover:brightness-125",
+                            "slide-in-from-bottom-6 [--tw-animation-delay:200ms] h-24 cursor-pointer gap-3 rounded-2xl border-2 bg-background text-2xl shadow-2xl dark:bg-secondary dark:hover:bg-secondary dark:hover:brightness-125",
                         )}
                         onClick={() => onOpenChange(false)}
                         disabled={completing}

@@ -1,11 +1,16 @@
 "use client"
 
+import type { MouseEvent } from "react"
+import { Button } from "@/components/ui/button"
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty"
 import { Separator } from "@/components/ui/separator"
-import { Utensils } from "lucide-react"
+import { useDeviceType } from "@/hooks/use-device-type"
+import { Check, Utensils } from "lucide-react"
 import { toast } from "sonner"
 import { DraggableOrder } from "./DraggableOrder"
+import { OrderCard } from "./OrderCard"
 import { useOrderReorder } from "./useOrderReorder"
+import { useTouchReorder } from "./useTouchReorder"
 import type { SSEOrder } from "./types"
 
 interface Props {
@@ -16,6 +21,9 @@ interface Props {
 
 export function OrderGrid({ orders, printerIds, onCompleted }: Props) {
     const { pinned, unpinned, pinnedIds, move, togglePin } = useOrderReorder(orders)
+    const { deviceType } = useDeviceType()
+    const touch = useTouchReorder({ enabled: deviceType === "tablet", onMove: move })
+    const ghostOrder = touch.ghost && orders.find((o) => o.id === touch.ghost?.id)
 
     async function complete(id: string) {
         try {
@@ -32,13 +40,24 @@ export function OrderGrid({ orders, printerIds, onCompleted }: Props) {
         }
     }
 
-    function renderOrder(o: SSEOrder) {
+    // In reorder mode a tap on empty space ends it, as on iOS.
+    function onGridClick(e: MouseEvent<HTMLDivElement>) {
+        if (!touch.reordering) return
+        if ((e.target as HTMLElement).closest("[data-order-id]")) return
+        touch.exit()
+    }
+
+    function renderOrder(o: SSEOrder, index: number) {
         return (
             <DraggableOrder
                 key={o.id}
                 order={o}
                 printerIds={printerIds}
                 pinned={pinnedIds.has(o.id)}
+                reordering={touch.reordering}
+                dragSource={touch.ghost?.id === o.id}
+                index={index}
+                onTouchPointerDown={(e) => touch.onCardPointerDown(o.id, e)}
                 onMove={move}
                 onTogglePin={togglePin}
                 onComplete={complete}
@@ -63,7 +82,7 @@ export function OrderGrid({ orders, printerIds, onCompleted }: Props) {
     }
 
     return (
-        <div className="flex flex-col gap-4 p-6 pt-8">
+        <div className="flex min-h-full flex-col gap-4 p-6 pt-8" onClick={onGridClick}>
             {pinned.length > 0 && (
                 <>
                     <div className="flex flex-wrap items-start content-start gap-x-4 gap-y-8">
@@ -76,6 +95,29 @@ export function OrderGrid({ orders, printerIds, onCompleted }: Props) {
                 <div className="flex flex-wrap items-start content-start gap-x-4 gap-y-8">
                     {unpinned.map(renderOrder)}
                 </div>
+            )}
+
+            {touch.ghost && ghostOrder && (
+                <div
+                    className="pointer-events-none fixed z-50 scale-105 rotate-2 rounded-xl shadow-2xl"
+                    style={{
+                        left: touch.ghost.x - touch.ghost.offsetX,
+                        top: touch.ghost.y - touch.ghost.offsetY,
+                        width: touch.ghost.width,
+                    }}
+                >
+                    <OrderCard order={ghostOrder} printerIds={printerIds} pinned={pinnedIds.has(ghostOrder.id)} />
+                </div>
+            )}
+
+            {touch.reordering && (
+                <Button
+                    className="fixed bottom-6 left-1/2 z-40 h-14 -translate-x-1/2 cursor-pointer gap-2 rounded-full px-8 text-lg shadow-2xl animate-in fade-in-0 slide-in-from-bottom-4"
+                    onClick={touch.exit}
+                >
+                    <Check className="size-5" />
+                    Fine
+                </Button>
             )}
         </div>
     )

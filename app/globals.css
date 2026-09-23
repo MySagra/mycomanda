@@ -121,3 +121,18 @@
     @apply bg-background text-foreground;
   }
 }
+/* iOS-style wobble for cards in reorder mode. `rotate` leaves `transform` free
+   for the other animations. */
+@theme {
+  --animate-jiggle: jiggle 0.28s ease-in-out infinite;
+
+  @keyframes jiggle {
+    0%,
+    100% {
+      rotate: -0.8deg;
+    }
+    50% {
+      rotate: 0.8deg;
+    }
+  }
+}

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, type DragEvent } from "react"
+import { useState, type DragEvent, type PointerEvent } from "react"
 import { Check, GripVertical, Pin } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
@@ -16,12 +16,30 @@ interface Props {
     order: SSEOrder
     printerIds: string[]
     pinned: boolean
+    // Tablet reorder mode: every card wobbles and a tap no longer opens the actions.
+    reordering: boolean
+    // This card is picked up: a ghost follows the finger, the card stays as a placeholder.
+    dragSource: boolean
+    // Position in the grid, used to desync the wobble between neighbours.
+    index: number
+    onTouchPointerDown: (e: PointerEvent<HTMLDivElement>) => void
     onMove: (fromId: string, toId: string) => void
     onTogglePin: (id: string) => void
     onComplete: (id: string) => Promise<void>
 }
 
-export function DraggableOrder({ order, printerIds, pinned, onMove, onTogglePin, onComplete }: Props) {
+export function DraggableOrder({
+    order,
+    printerIds,
+    pinned,
+    reordering,
+    dragSource,
+    index,
+    onTouchPointerDown,
+    onMove,
+    onTogglePin,
+    onComplete,
+}: Props) {
     const [dragging, setDragging] = useState(false)
     const [over, setOver] = useState(false)
     const [completing, setCompleting] = useState(false)
@@ -85,23 +103,40 @@ export function DraggableOrder({ order, printerIds, pinned, onMove, onTogglePin,
     return (
         <>
             <div
-                draggable
+                data-order-id={order.id}
+                // Tablets reorder with the long press below; native drag would clash with it.
+                draggable={!isTablet}
                 onDragStart={onDragStart}
                 onDragEnd={onDragEnd}
                 onDragOver={onDragOver}
                 onDragEnter={onDragEnter}
                 onDragLeave={onDragLeave}
                 onDrop={onDrop}
-                onClick={isTablet ? () => setActionsOpen(true) : undefined}
-                className={[
-                    "relative group w-fit max-w-sm select-none cursor-grab active:cursor-grabbing transition-all",
-                    dragging ? "opacity-40" : "",
-                    over ? "ring-2 ring-primary rounded-xl" : "",
-                ].join(" ")}
+                onPointerDown={isTablet ? onTouchPointerDown : undefined}
+                // Long press would otherwise open the system context menu.
+                onContextMenu={isTablet ? (e) => e.preventDefault() : undefined}
+                onClick={isTablet && !reordering ? () => setActionsOpen(true) : undefined}
+                style={
+                    reordering
+                        ? {
+                              animationDelay: `${-(index % 4) * 70}ms`,
+                              animationDirection: index % 2 ? "reverse" : "normal",
+                          }
+                        : undefined
+                }
+                className={cn(
+                    "relative group w-fit max-w-sm select-none transition-opacity",
+                    isTablet ? "[-webkit-touch-callout:none]" : "cursor-grab active:cursor-grabbing",
+                    reordering && "touch-none motion-safe:animate-jiggle",
+                    (dragging || dragSource) && "opacity-30",
+                    over && "ring-2 ring-primary rounded-xl",
+                )}
             >
-                <div className="absolute -top-2 -left-2 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-background ring-1 ring-border opacity-0 group-hover:opacity-100 pointer-events-none">
-                    <GripVertical className="h-3.5 w-3.5 text-muted-foreground" />
-                </div>
+                {!isTablet && (
+                    <div className="absolute -top-2 -left-2 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-background ring-1 ring-border opacity-0 group-hover:opacity-100 pointer-events-none">
+                        <GripVertical className="h-3.5 w-3.5 text-muted-foreground" />
+                    </div>
+                )}
                 {/* Round actions straddling the card's top edge, above the card. */}
                 {!isTablet && (
                     <div className="absolute top-0 right-3 z-20 flex -translate-y-1/2 gap-2">
