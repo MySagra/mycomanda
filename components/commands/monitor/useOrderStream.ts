@@ -18,6 +18,21 @@ const MAX_ORDERS = 100
 const STALE_TIMEOUT_MS = 45_000
 const RECONNECT_DELAY_MS = 3_000
 
+// The backend closes the service day at 07:00, so a day runs from 07:00 to
+// 06:59:59.999 of the next calendar day. Before 07:00 we are still in the
+// service day that started yesterday morning.
+const SERVICE_DAY_START_HOUR = 7
+
+function serviceDayRange(now: Date) {
+    const dateFrom = new Date(now)
+    dateFrom.setHours(SERVICE_DAY_START_HOUR, 0, 0, 0)
+    if (now < dateFrom) dateFrom.setDate(dateFrom.getDate() - 1)
+    const dateTo = new Date(dateFrom)
+    dateTo.setDate(dateTo.getDate() + 1)
+    dateTo.setMilliseconds(-1)
+    return { dateFrom, dateTo }
+}
+
 export function useOrderStream({ channel, printerId }: Options) {
     const [orders, setOrders] = useState<SSEOrder[]>([])
     const [state, setState] = useState<ConnectionState>("loading")
@@ -131,7 +146,12 @@ export function useOrderStream({ channel, printerId }: Options) {
             setState("loading")
             setLastError(null)
             try {
-                const res = await fetch("/api/orders/history", { cache: "no-store" })
+                const { dateFrom, dateTo } = serviceDayRange(new Date())
+                const params = new URLSearchParams({
+                    dateFrom: dateFrom.toISOString(),
+                    dateTo: dateTo.toISOString(),
+                })
+                const res = await fetch(`/api/orders/history?${params}`, { cache: "no-store" })
                 if (!res.ok) throw new Error(`HTTP ${res.status}`)
                 const history = (await res.json()) as SSEOrder[]
                 if (cancelled) return
