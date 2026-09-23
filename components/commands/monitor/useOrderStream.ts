@@ -7,7 +7,7 @@ type ConnectionState = "loading" | "connecting" | "open" | "error"
 
 interface Options {
     channel: string
-    printerId: string
+    printerIds: string[]
 }
 
 const MAX_ORDERS = 100
@@ -33,14 +33,19 @@ function serviceDayRange(now: Date) {
     return { dateFrom, dateTo }
 }
 
-export function useOrderStream({ channel, printerId }: Options) {
+export function useOrderStream({ channel, printerIds }: Options) {
     const [orders, setOrders] = useState<SSEOrder[]>([])
     const [state, setState] = useState<ConnectionState>("loading")
     const [lastError, setLastError] = useState<string | null>(null)
     const esRef = useRef<EventSource | null>(null)
+    // Stable effect dependency: a new array with the same ids must not reconnect.
+    const printerKey = [...printerIds].sort().join(",")
 
     useEffect(() => {
-        if (!printerId) return
+        if (!printerKey) return
+        const selected = new Set(printerKey.split(","))
+        const isForSelected = (o: SSEOrder) =>
+            o.orderItems?.some((it) => it.food?.printerId != null && selected.has(it.food.printerId))
 
         let cancelled = false
         let staleTimer: ReturnType<typeof setTimeout> | undefined
@@ -109,7 +114,7 @@ export function useOrderStream({ channel, printerId }: Options) {
                 markAlive()
                 try {
                     const data = JSON.parse(msg.data) as SSEOrder
-                    if (!data.orderItems?.some((it) => it.food?.printerId === printerId)) return
+                    if (!isForSelected(data)) return
                     setOrders((prev) => {
                         const dedup = prev.filter((o) => o.id !== data.id)
                         return [data, ...dedup].slice(0, MAX_ORDERS)
@@ -155,9 +160,7 @@ export function useOrderStream({ channel, printerId }: Options) {
                 if (!res.ok) throw new Error(`HTTP ${res.status}`)
                 const history = (await res.json()) as SSEOrder[]
                 if (cancelled) return
-                const filtered = history.filter((o) =>
-                    o.orderItems?.some((it) => it.food?.printerId === printerId),
-                )
+                const filtered = history.filter(isForSelected)
                 setOrders(filtered.slice(0, MAX_ORDERS))
             } catch (err) {
                 console.warn("[history] fetch failed", err)
@@ -187,7 +190,7 @@ export function useOrderStream({ channel, printerId }: Options) {
             clearTimers()
             closeStream()
         }
-    }, [channel, printerId])
+    }, [channel, printerKey])
 
     return { orders, state, lastError }
 }

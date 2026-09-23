@@ -17,7 +17,7 @@ export function Header() {
     const [isFullscreen, setIsFullscreen] = useState(false)
     const router = useRouter()
     const { user } = useAuth()
-    const { printer, clear } = usePrinterSelection()
+    const { printers, setDialogOpen } = usePrinterSelection()
 
     useEffect(() => {
         setMounted(true)
@@ -49,17 +49,21 @@ export function Header() {
                 </div>
 
                 <div className="flex items-center gap-3 shrink-0">
-                    {printer && (
-                        <div className="flex items-center gap-2 pr-3 border-r">
-                            <Badge variant="secondary" className="gap-1">
-                                <PrinterIcon className="h-3.5 w-3.5" />
-                                {printer.name}
-                            </Badge>
+                    {printers.length > 0 && (
+                        <div className="flex items-center gap-2 pr-3 border-r min-w-0">
+                            <div className="flex flex-wrap items-center gap-1 max-w-md">
+                                {printers.map((p) => (
+                                    <Badge key={p.id} variant="secondary" className="gap-1">
+                                        <PrinterIcon className="h-3.5 w-3.5" />
+                                        {p.name}
+                                    </Badge>
+                                ))}
+                            </div>
                             <Button
                                 variant="ghost"
                                 size="sm"
                                 className="cursor-pointer h-8"
-                                onClick={clear}
+                                onClick={() => setDialogOpen(true)}
                             >
                                 <RefreshCw className="h-4 w-4" />
                                 Cambia

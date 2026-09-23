@@ -9,11 +9,11 @@ const MIME = "application/x-order-id"
 
 interface Props {
     order: SSEOrder
-    printerId: string
+    printerIds: string[]
     onMove: (fromId: string, toId: string) => void
 }
 
-export function DraggableOrder({ order, printerId, onMove }: Props) {
+export function DraggableOrder({ order, printerIds, onMove }: Props) {
     const [dragging, setDragging] = useState(false)
     const [over, setOver] = useState(false)
 
@@ -74,7 +74,7 @@ export function DraggableOrder({ order, printerId, onMove }: Props) {
                 <GripVertical className="h-3.5 w-3.5 text-muted-foreground" />
             </div>
             <div className="pointer-events-none">
-                <OrderCard order={order} printerId={printerId} />
+                <OrderCard order={order} printerIds={printerIds} />
             </div>
         </div>
     )

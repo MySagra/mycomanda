@@ -7,19 +7,29 @@ import { usePrinterSelection } from "./PrinterSelectionContext"
 import { Spinner } from "@/components/ui/spinner"
 
 export function KitchenMonitor() {
-    const { printer, hydrated, select } = usePrinterSelection()
+    const { printers, hydrated, select, dialogOpen, setDialogOpen } = usePrinterSelection()
 
     if (!hydrated) return null
 
-    if (!printer) {
-        return <PrinterSelector onSelect={select} />
-    }
+    const printerIds = printers.map((p) => p.id)
+    const required = printerIds.length === 0
 
-    return <MonitorView printerId={printer.id} />
+    return (
+        <>
+            <PrinterSelector
+                open={dialogOpen || required}
+                required={required}
+                selectedIds={printerIds}
+                onOpenChange={setDialogOpen}
+                onConfirm={select}
+            />
+            {!required && <MonitorView printerIds={printerIds} />}
+        </>
+    )
 }
 
-function MonitorView({ printerId }: { printerId: string }) {
-    const { orders, state } = useOrderStream({ channel: "printer", printerId })
+function MonitorView({ printerIds }: { printerIds: string[] }) {
+    const { orders, state } = useOrderStream({ channel: "printer", printerIds })
 
     return (
         <div className="flex flex-1 flex-col overflow-hidden">
@@ -29,7 +39,7 @@ function MonitorView({ printerId }: { printerId: string }) {
                         <Spinner />
                     </div>
                 ) : (
-                    <OrderGrid orders={orders} printerId={printerId} />
+                    <OrderGrid orders={orders} printerIds={printerIds} />
                 )}
             </div>
         </div>

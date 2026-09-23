@@ -8,10 +8,10 @@ import type { SSEOrder } from "./types"
 
 interface Props {
     orders: SSEOrder[]
-    printerId: string
+    printerIds: string[]
 }
 
-export function OrderGrid({ orders, printerId }: Props) {
+export function OrderGrid({ orders, printerIds }: Props) {
     const { ordered, move } = useOrderReorder(orders)
 
     if (ordered.length === 0) {
@@ -22,7 +22,7 @@ export function OrderGrid({ orders, printerId }: Props) {
                         <Utensils className="h-10 w-10 text-muted-foreground" />
                         <EmptyTitle>In attesa di comande</EmptyTitle>
                         <EmptyDescription>
-                            Le nuove comande destinate a questa stampante appariranno qui.
+                            Le nuove comande destinate alle stampanti selezionate appariranno qui.
                         </EmptyDescription>
                     </EmptyHeader>
                 </Empty>
@@ -33,7 +33,7 @@ export function OrderGrid({ orders, printerId }: Props) {
     return (
         <div className="flex flex-wrap items-start content-start gap-4 p-6">
             {ordered.map((o) => (
-                <DraggableOrder key={o.id} order={o} printerId={printerId} onMove={move} />
+                <DraggableOrder key={o.id} order={o} printerIds={printerIds} onMove={move} />
             ))}
         </div>
     )

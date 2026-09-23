@@ -3,7 +3,9 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react"
 import type { Printer } from "./types"
 
-const STORAGE_KEY = "mycomanda_selected_printer"
+const STORAGE_KEY = "mycomanda_selected_printers"
+// Single-printer selection saved by older versions, migrated on first load.
+const LEGACY_STORAGE_KEY = "mycomanda_selected_printer"
 
 interface StoredPrinter {
     id: string
@@ -11,44 +13,59 @@ interface StoredPrinter {
 }
 
 interface Ctx {
-    printer: StoredPrinter | null
+    printers: StoredPrinter[]
     hydrated: boolean
-    select: (p: Printer) => void
-    clear: () => void
+    select: (printers: Printer[]) => void
+    dialogOpen: boolean
+    setDialogOpen: (open: boolean) => void
 }
 
 const PrinterSelectionContext = createContext<Ctx | null>(null)
 
+function readStored(): StoredPrinter[] {
+    const raw = localStorage.getItem(STORAGE_KEY)
+    if (raw) {
+        const parsed = JSON.parse(raw) as StoredPrinter[]
+        return Array.isArray(parsed) ? parsed.filter((p) => p?.id) : []
+    }
+    const legacy = localStorage.getItem(LEGACY_STORAGE_KEY)
+    if (legacy) {
+        const parsed = JSON.parse(legacy) as StoredPrinter
+        localStorage.removeItem(LEGACY_STORAGE_KEY)
+        if (parsed?.id) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify([parsed]))
+            return [parsed]
+        }
+    }
+    return []
+}
+
 export function PrinterSelectionProvider({ children }: { children: ReactNode }) {
-    const [printer, setPrinter] = useState<StoredPrinter | null>(null)
+    const [printers, setPrinters] = useState<StoredPrinter[]>([])
     const [hydrated, setHydrated] = useState(false)
+    const [dialogOpen, setDialogOpen] = useState(false)
 
     useEffect(() => {
         try {
-            const raw = localStorage.getItem(STORAGE_KEY)
-            if (raw) {
-                const parsed = JSON.parse(raw) as StoredPrinter
-                if (parsed?.id) setPrinter(parsed)
-            }
+            setPrinters(readStored())
         } catch {
             // ignore
         }
         setHydrated(true)
     }, [])
 
-    const select = useCallback((p: Printer) => {
-        const stored: StoredPrinter = { id: p.id, name: p.name }
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(stored))
-        setPrinter(stored)
-    }, [])
-
-    const clear = useCallback(() => {
-        localStorage.removeItem(STORAGE_KEY)
-        setPrinter(null)
+    const select = useCallback((selected: Printer[]) => {
+        const stored: StoredPrinter[] = selected.map((p) => ({ id: p.id, name: p.name }))
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(stored))
+        } catch {
+            // ignore
+        }
+        setPrinters(stored)
     }, [])
 
     return (
-        <PrinterSelectionContext.Provider value={{ printer, hydrated, select, clear }}>
+        <PrinterSelectionContext.Provider value={{ printers, hydrated, select, dialogOpen, setDialogOpen }}>
             {children}
         </PrinterSelectionContext.Provider>
     )

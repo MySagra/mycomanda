@@ -8,7 +8,7 @@ import type { SSEOrder, SSEOrderItem } from "./types"
 
 interface Props {
     order: SSEOrder
-    printerId: string
+    printerIds: string[]
 }
 
 function formatTime(iso: string) {
@@ -20,8 +20,8 @@ function formatTime(iso: string) {
     }
 }
 
-export function OrderCard({ order, printerId }: Props) {
-    const items = order.orderItems.filter((it) => it.food?.printerId === printerId)
+export function OrderCard({ order, printerIds }: Props) {
+    const items = order.orderItems.filter((it) => it.food?.printerId != null && printerIds.includes(it.food.printerId))
     if (items.length === 0) return null
 
     return (
