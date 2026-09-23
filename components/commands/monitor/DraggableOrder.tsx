@@ -52,7 +52,10 @@ export function DraggableOrder({
     // Touch screens have no hover: on tablets a tap on the card opens the
     // actions full screen instead of the round buttons on the card edge.
     const isTablet = deviceType === "tablet"
-    const hoverOnly = "opacity-0 group-hover:opacity-100 group-focus-within:opacity-100"
+    // Shown on hover. A screen that cannot hover (a tablet left in desktop mode)
+    // shows them all the time, or they could never be reached.
+    const hoverOnly =
+        "opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 [@media(hover:none)]:opacity-100"
     // Solid colours on hover too: the stock variants fade to translucent ones,
     // which let the card border show through the button.
     const actionClass = "size-11 cursor-pointer rounded-full border-2 shadow-lg [&_svg:not([class*='size-'])]:size-5"
