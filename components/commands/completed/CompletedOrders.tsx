@@ -5,6 +5,7 @@ import { Spinner } from "@/components/ui/spinner"
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty"
 import { CheckCheck, RefreshCw } from "lucide-react"
 import { toast } from "sonner"
+import { useTranslation } from "react-i18next"
 import { PrinterSelector } from "@/components/commands/monitor/PrinterSelector"
 import { usePrinterSelection } from "@/components/commands/monitor/PrinterSelectionContext"
 import { patchOrderStatus } from "@/components/commands/monitor/serviceDayOrders"
@@ -35,16 +36,17 @@ export function CompletedOrders() {
 
 function CompletedList({ printerIds }: { printerIds: string[] }) {
     const { orders, loading, error, reload, removeOrder } = useCompletedOrders(printerIds)
+    const { t } = useTranslation()
 
     // Back to CONFIRMED: live monitors pick it up from the `order-status-update` event.
     async function restore(id: string) {
         try {
             await patchOrderStatus(id, "CONFIRMED")
             removeOrder(id)
-            toast.success("Ordine riportato in lavorazione")
+            toast.success(t("completed.restoreSuccess"))
         } catch (err) {
             console.warn("[completed] restore failed", err)
-            toast.error("Impossibile riportare l'ordine in lavorazione")
+            toast.error(t("completed.restoreError"))
         }
     }
 
@@ -53,12 +55,12 @@ function CompletedList({ printerIds }: { printerIds: string[] }) {
             <div className="flex items-center justify-between gap-4 border-b px-6 py-3">
                 <div className="flex items-center gap-2">
                     <CheckCheck className="h-5 w-5 text-green-600 dark:text-green-500" />
-                    <h2 className="text-lg font-semibold">Ordini completati</h2>
+                    <h2 className="text-lg font-semibold">{t("completed.title")}</h2>
                     {!loading && !error && <span className="text-sm text-muted-foreground">({orders.length})</span>}
                 </div>
                 <Button variant="outline" size="sm" className="cursor-pointer" onClick={reload} disabled={loading}>
                     <RefreshCw className={loading ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
-                    Aggiorna
+                    {t("common.refresh")}
                 </Button>
             </div>
 
@@ -71,8 +73,8 @@ function CompletedList({ printerIds }: { printerIds: string[] }) {
                     <div className="flex h-full items-center justify-center p-6">
                         <Empty>
                             <EmptyHeader>
-                                <EmptyTitle>Errore</EmptyTitle>
-                                <EmptyDescription>{error}</EmptyDescription>
+                                <EmptyTitle>{t("common.error")}</EmptyTitle>
+                                <EmptyDescription>{t(error)}</EmptyDescription>
                             </EmptyHeader>
                         </Empty>
                     </div>
@@ -81,9 +83,9 @@ function CompletedList({ printerIds }: { printerIds: string[] }) {
                         <Empty>
                             <EmptyHeader>
                                 <CheckCheck className="h-10 w-10 text-muted-foreground" />
-                                <EmptyTitle>Nessun ordine completato</EmptyTitle>
+                                <EmptyTitle>{t("completed.emptyTitle")}</EmptyTitle>
                                 <EmptyDescription>
-                                    Gli ordini completati oggi per le stampanti selezionate appariranno qui.
+                                    {t("completed.emptyDescription")}
                                 </EmptyDescription>
                             </EmptyHeader>
                         </Empty>

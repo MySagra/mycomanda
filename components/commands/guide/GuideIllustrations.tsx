@@ -3,6 +3,7 @@
 import type { ReactNode } from "react"
 import { Check, CheckCheck, Hash, MousePointer2, Pin, Pointer, Printer, RefreshCw, Undo2, X } from "lucide-react"
 import { cn } from "cn"
+import { useTranslation } from "react-i18next"
 import { CountdownBorder } from "@/components/commands/monitor/CountdownBorder"
 
 // Small looping mock-ups of the monitor, drawn with the app's own tokens so
@@ -71,12 +72,13 @@ function Cursor({ touch, className }: { touch: boolean; className?: string }) {
 
 /** Tapping a dish fills its row, one portion per tap. */
 export function DishProgressIllustration({ touch }: { touch: boolean }) {
+    const { t } = useTranslation()
     return (
         <Frame>
             <div className="relative">
                 <MiniCard code="ABC" className="w-40">
                     <MiniRow label="2× Margherita" fill />
-                    <MiniRow label="1× Patatine" />
+                    <MiniRow label={`1× ${t("guide.sampleFries")}`} />
                 </MiniCard>
                 <Cursor touch={touch} className="top-9 left-24 motion-safe:animate-guide-tap" />
             </div>
@@ -86,12 +88,13 @@ export function DishProgressIllustration({ touch }: { touch: boolean }) {
 
 /** Every dish ready: the green border drains, then the order completes itself. */
 export function AutoCompleteIllustration() {
+    const { t } = useTranslation()
     return (
         <Frame>
             <div className="relative">
                 <MiniCard code="ABC" className="w-40 ring-2 ring-green-600/25">
                     <MiniRow label="2× Margherita" done />
-                    <MiniRow label="1× Patatine" done />
+                    <MiniRow label={`1× ${t("guide.sampleFries")}`} done />
                 </MiniCard>
                 {/* MiniCard is rounded-lg: --radius (0.65rem). */}
                 <CountdownBorder radius={10.4} className="motion-safe:animate-guide-drain" />
@@ -124,6 +127,7 @@ export function HoverActionsIllustration() {
 
 /** Tablet: tapping a card opens the full-screen actions. */
 export function TapActionsIllustration() {
+    const { t } = useTranslation()
     return (
         <Frame
             overlay={
@@ -131,16 +135,16 @@ export function TapActionsIllustration() {
                     <div className="grid flex-1 grid-cols-2 gap-2">
                         <span className="flex flex-col items-center justify-center gap-1 rounded-md border bg-background text-xs font-medium">
                             <Pin className="size-5" />
-                            Fissa
+                            {t("guide.samplePin")}
                         </span>
                         <span className="flex flex-col items-center justify-center gap-1 rounded-md bg-green-600 text-xs font-medium text-white">
                             <Check className="size-5" />
-                            Completa
+                            {t("monitor.complete")}
                         </span>
                     </div>
                     <span className="flex items-center justify-center gap-1 rounded-md border bg-background py-1.5 text-xs font-medium">
                         <X className="size-3.5" />
-                        Annulla
+                        {t("common.cancel")}
                     </span>
                 </div>
             }
@@ -158,13 +162,14 @@ export function TapActionsIllustration() {
 
 /** Pressing and dragging a card to a new slot; on tablets the cards wobble. */
 export function ReorderIllustration({ touch }: { touch: boolean }) {
+    const { t } = useTranslation()
     return (
         <Frame
             overlay={
                 touch && (
                     <span className="absolute bottom-3 flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground shadow">
                         <Check className="size-3.5" />
-                        Fine
+                        {t("monitor.done")}
                     </span>
                 )
             }
@@ -203,17 +208,18 @@ export function PinnedIllustration() {
 
 /** The Completati page, with the button that sends an order back. */
 export function CompletedIllustration() {
+    const { t } = useTranslation()
     return (
         <Frame className="flex-col gap-3">
             <span className="flex items-center gap-1 rounded-md border bg-background px-2 py-1 text-[10px] font-medium shadow-sm">
                 <CheckCheck className="size-3 text-green-600" />
-                Completati
+                {t("header.completed")}
             </span>
             <MiniCard code="ABC" className="w-40">
                 <MiniRow label="2× Margherita" />
                 <span className="mt-1.5 flex items-center justify-center gap-1 rounded border bg-background py-1 text-[8px] font-medium">
                     <Undo2 className="size-2.5" />
-                    Riporta in lavorazione
+                    {t("completed.restore")}
                 </span>
             </MiniCard>
         </Frame>
@@ -222,10 +228,11 @@ export function CompletedIllustration() {
 
 /** The printer badges and the Cambia button in the header. */
 export function PrintersIllustration() {
+    const { t } = useTranslation()
     return (
         <Frame>
             <div className="flex items-center gap-2 rounded-lg border bg-background px-3 py-2 shadow-sm">
-                {["Cucina", "Griglia"].map((name) => (
+                {[t("guide.sampleKitchen"), t("guide.sampleGrill")].map((name) => (
                     <span key={name} className="flex items-center gap-1 rounded-md bg-secondary px-1.5 py-0.5 text-[10px] font-medium">
                         <Printer className="size-3" />
                         {name}
@@ -233,7 +240,7 @@ export function PrintersIllustration() {
                 ))}
                 <span className="flex items-center gap-1 text-[10px] font-medium">
                     <RefreshCw className="size-3" />
-                    Cambia
+                    {t("header.change")}
                 </span>
             </div>
         </Frame>

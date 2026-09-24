@@ -7,6 +7,7 @@ import { Spinner } from "@/components/ui/spinner"
 import { Check, Hash, Pin, X } from "lucide-react"
 import { cn } from "cn"
 import type { SSEOrder } from "./types"
+import { useTranslation } from "react-i18next"
 
 interface Props {
     order: SSEOrder
@@ -27,6 +28,8 @@ const enter = "animate-in fade-in-0 fill-mode-both duration-300 ease-out"
  * over the monitor, with targets big enough for a finger.
  */
 export function OrderActionsOverlay({ order, open, pinned, completing, onOpenChange, onTogglePin, onComplete }: Props) {
+    const { t } = useTranslation()
+
     // The popup covers the whole screen, so the backdrop never receives taps:
     // any tap that does not land on a button counts as a tap outside.
     function onPopupClick(e: MouseEvent<HTMLDivElement>) {
@@ -49,7 +52,7 @@ export function OrderActionsOverlay({ order, open, pinned, completing, onOpenCha
                             {order.displayCode}
                         </DialogPrimitive.Title>
                         <DialogPrimitive.Description className="text-base text-white/80">
-                            {[order.ticketNumber != null && `Comanda #${order.ticketNumber}`, order.table, order.customer]
+                            {[order.ticketNumber != null && t("monitor.ticket", { number: order.ticketNumber }), order.table, order.customer]
                                 .filter(Boolean)
                                 .join(" · ")}
                         </DialogPrimitive.Description>
@@ -67,7 +70,7 @@ export function OrderActionsOverlay({ order, open, pinned, completing, onOpenCha
                             disabled={completing}
                         >
                             <Pin className={cn("size-16", pinned && "fill-current")} />
-                            {pinned ? "Rimuovi fissaggio" : "Fissa in alto"}
+                            {pinned ? t("monitor.unpin") : t("monitor.pin")}
                         </Button>
                         <Button
                             className={cn(
@@ -78,7 +81,7 @@ export function OrderActionsOverlay({ order, open, pinned, completing, onOpenCha
                             disabled={completing}
                         >
                             {completing ? <Spinner className="size-16" /> : <Check className="size-16" />}
-                            Completa
+                            {t("monitor.complete")}
                         </Button>
                     </div>
 
@@ -92,7 +95,7 @@ export function OrderActionsOverlay({ order, open, pinned, completing, onOpenCha
                         disabled={completing}
                     >
                         <X className="size-8" />
-                        Annulla
+                        {t("common.cancel")}
                     </Button>
                 </DialogPrimitive.Popup>
             </DialogPrimitive.Portal>

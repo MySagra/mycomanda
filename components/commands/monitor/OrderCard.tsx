@@ -8,6 +8,7 @@ import { Check, Clock, Hash, User, Utensils } from "lucide-react"
 import { cn } from "cn"
 import { advanceItem, useItemProgress } from "./useMonitorState"
 import type { SSEOrder, SSEOrderItem } from "./types"
+import { useTranslation } from "react-i18next"
 
 interface Props {
     order: SSEOrder
@@ -23,10 +24,10 @@ interface Props {
     roomForActions?: boolean
 }
 
-function formatTime(iso: string) {
+function formatTime(iso: string, locale: string) {
     try {
         const d = new Date(iso)
-        return d.toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" })
+        return d.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" })
     } catch {
         return iso
     }
@@ -34,6 +35,7 @@ function formatTime(iso: string) {
 
 export function OrderCard({ order, printerIds, pinned, ready = false, interactive = false, roomForActions = false }: Props) {
     const progress = useItemProgress()
+    const { i18n } = useTranslation()
     const items = order.orderItems.filter((it) => it.food?.printerId != null && printerIds.includes(it.food.printerId))
     if (items.length === 0) return null
 
@@ -58,7 +60,7 @@ export function OrderCard({ order, printerIds, pinned, ready = false, interactiv
                     </div>
                     <div className="flex items-center gap-1 text-sm text-muted-foreground">
                         <Clock className="h-4 w-4" />
-                        {formatTime(order.confirmedAt ?? order.createdAt)}
+                        {formatTime(order.confirmedAt ?? order.createdAt, i18n.language)}
                     </div>
                 </div>
 
@@ -102,6 +104,7 @@ interface RowProps {
 
 // The row itself is the progress bar: its background fills one portion per tap.
 function OrderItemRow({ item, completed, onAdvance }: RowProps) {
+    const { t } = useTranslation()
     const done = completed >= item.quantity
     const percent = (completed / item.quantity) * 100
 
@@ -115,7 +118,11 @@ function OrderItemRow({ item, completed, onAdvance }: RowProps) {
         <div
             role={onAdvance ? "button" : undefined}
             tabIndex={onAdvance ? 0 : undefined}
-            aria-label={onAdvance ? `${item.food?.name ?? "Piatto"}: ${completed} di ${item.quantity} pronti` : undefined}
+            aria-label={
+                onAdvance
+                    ? t("monitor.itemProgress", { name: item.food?.name ?? t("common.dish"), completed, quantity: item.quantity })
+                    : undefined
+            }
             onClick={onAdvance ? advance : undefined}
             onKeyDown={
                 onAdvance

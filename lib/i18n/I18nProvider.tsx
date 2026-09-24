@@ -14,8 +14,11 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
     }
     setMounted(true);
 
+    document.documentElement.lang = savedLang;
+
     const handleLanguageChange = (lng: string) => {
       localStorage.setItem("app_lang", lng);
+      document.documentElement.lang = lng;
     };
 
     i18n.on("languageChanged", handleLanguageChange);

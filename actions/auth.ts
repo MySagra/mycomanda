@@ -18,7 +18,7 @@ export async function login(username: string, password: string) {
     });
 
     if (!response.ok) {
-      return { success: false, error: 'Credenziali non valide' };
+      return { success: false, error: 'loginForm.invalidCredentials' };
     }
 
     const data = await response.json();
@@ -69,7 +69,7 @@ export async function login(username: string, password: string) {
     return { success: true };
   } catch (error) {
     console.error('Login error:', error);
-    return { success: false, error: 'Errore durante il login' };
+    return { success: false, error: 'loginForm.loginError' };
   }
 }
 

@@ -9,19 +9,10 @@ import { useDeviceType, type DeviceType } from "@/hooks/use-device-type"
 import { Monitor, Tablet } from "lucide-react"
 import { useTranslation } from "react-i18next"
 
-const DEVICE_OPTIONS: { value: DeviceType; title: string; description: string; icon: typeof Monitor }[] = [
-    {
-        value: "desktop",
-        title: "Desktop",
-        description: "Computer con mouse o trackpad.",
-        icon: Monitor,
-    },
-    {
-        value: "tablet",
-        title: "Tablet / iPad",
-        description: "Dispositivo touch, comandi pensati per le dita.",
-        icon: Tablet,
-    },
+// Title and description come from `settings.<value>` and `settings.<value>Description`.
+const DEVICE_OPTIONS: { value: DeviceType; icon: typeof Monitor }[] = [
+    { value: "desktop", icon: Monitor },
+    { value: "tablet", icon: Tablet },
 ]
 
 export default function SettingsPage() {
@@ -34,24 +25,24 @@ export default function SettingsPage() {
             <main className="flex-1 overflow-y-auto pt-16">
                 <div className="max-w-2xl mx-auto px-6 py-8 space-y-8">
                     <div>
-                        <h2 className="text-2xl font-bold">Impostazioni</h2>
-                        <p className="text-sm text-muted-foreground mt-1">Gestisci le preferenze dell&apos;applicazione.</p>
+                        <h2 className="text-2xl font-bold">{t("settings.title")}</h2>
+                        <p className="text-sm text-muted-foreground mt-1">{t("settings.subtitle")}</p>
                     </div>
 
                     <Separator />
 
                     <section className="space-y-4">
-                        <h3 className="text-base font-semibold">Aspetto</h3>
-                        <p className="text-sm text-muted-foreground">Tema e visualizzazione.</p>
+                        <h3 className="text-base font-semibold">{t("settings.appearance")}</h3>
+                        <p className="text-sm text-muted-foreground">{t("settings.appearanceDescription")}</p>
                     </section>
 
                     <Separator />
 
                     <section className="space-y-4">
                         <div>
-                            <h3 className="text-base font-semibold">Dispositivo</h3>
+                            <h3 className="text-base font-semibold">{t("settings.device")}</h3>
                             <p className="text-sm text-muted-foreground">
-                                Tipo di dispositivo su cui è aperta l&apos;applicazione.
+                                {t("settings.deviceDescription")}
                             </p>
                         </div>
                         <RadioGroup
@@ -59,16 +50,16 @@ export default function SettingsPage() {
                             onValueChange={(value) => setDeviceType(value as DeviceType)}
                             className="sm:grid-cols-2"
                         >
-                            {DEVICE_OPTIONS.map(({ value, title, description, icon: Icon }) => (
+                            {DEVICE_OPTIONS.map(({ value, icon: Icon }) => (
                                 <FieldLabel key={value} htmlFor={`device-${value}`} className="cursor-pointer">
                                     <Field orientation="horizontal">
                                         <FieldContent>
                                             <FieldTitle>
                                                 <Icon className="h-4 w-4" />
-                                                {title}
-                                                {detected === value && <Badge variant="secondary">Rilevato</Badge>}
+                                                {t(`settings.${value}`)}
+                                                {detected === value && <Badge variant="secondary">{t("settings.detected")}</Badge>}
                                             </FieldTitle>
-                                            <FieldDescription>{description}</FieldDescription>
+                                            <FieldDescription>{t(`settings.${value}Description`)}</FieldDescription>
                                         </FieldContent>
                                         <RadioGroupItem value={value} id={`device-${value}`} />
                                     </Field>
@@ -80,15 +71,15 @@ export default function SettingsPage() {
                     <Separator />
 
                     <section className="space-y-4">
-                        <h3 className="text-base font-semibold">Lingua</h3>
-                        <p className="text-sm text-muted-foreground">Lingua dell&apos;interfaccia.</p>
+                        <h3 className="text-base font-semibold">{t("settings.language")}</h3>
+                        <p className="text-sm text-muted-foreground">{t("settings.languageDescription")}</p>
                     </section>
 
                     <Separator />
 
                     <section className="space-y-4">
-                        <h3 className="text-base font-semibold">Account</h3>
-                        <p className="text-sm text-muted-foreground">Informazioni utente e sessione.</p>
+                        <h3 className="text-base font-semibold">{t("settings.account")}</h3>
+                        <p className="text-sm text-muted-foreground">{t("settings.accountDescription")}</p>
                     </section>
                 </div>
             </main>

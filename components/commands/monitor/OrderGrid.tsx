@@ -7,6 +7,7 @@ import { Separator } from "@/components/ui/separator"
 import { useDeviceType } from "@/hooks/use-device-type"
 import { Check, Utensils } from "lucide-react"
 import { toast } from "sonner"
+import { useTranslation } from "react-i18next"
 import { DraggableOrder } from "./DraggableOrder"
 import { OrderCard } from "./OrderCard"
 import { EXIT_ANIMATION_MS, useOrderReorder } from "./useOrderReorder"
@@ -28,6 +29,7 @@ const GRID_CLASS = "grid grid-cols-[repeat(auto-fill,minmax(18rem,1fr))] items-s
 export function OrderGrid({ orders, printerIds, onCompleted }: Props) {
     const { pinned, unpinned, pinnedIds, leavingIds, move, togglePin } = useOrderReorder(orders)
     const { deviceType } = useDeviceType()
+    const { t } = useTranslation()
     const reorder = usePointerReorder({ mode: deviceType === "tablet" ? "touch" : "mouse", onMove: move })
     const ghostOrder = reorder.ghost && orders.find((o) => o.id === reorder.ghost?.id)
 
@@ -39,7 +41,7 @@ export function OrderGrid({ orders, printerIds, onCompleted }: Props) {
             setTimeout(() => clearOrderState(id), EXIT_ANIMATION_MS)
         } catch (err) {
             console.warn("[order] complete failed", err)
-            toast.error("Impossibile completare l'ordine")
+            toast.error(t("monitor.completeError"))
         }
     }
 
@@ -74,9 +76,9 @@ export function OrderGrid({ orders, printerIds, onCompleted }: Props) {
                 <Empty>
                     <EmptyHeader>
                         <Utensils className="h-10 w-10 text-muted-foreground" />
-                        <EmptyTitle>In attesa di comande</EmptyTitle>
+                        <EmptyTitle>{t("monitor.waitingTitle")}</EmptyTitle>
                         <EmptyDescription>
-                            Le nuove comande destinate alle stampanti selezionate appariranno qui.
+                            {t("monitor.waitingDescription")}
                         </EmptyDescription>
                     </EmptyHeader>
                 </Empty>
@@ -125,7 +127,7 @@ export function OrderGrid({ orders, printerIds, onCompleted }: Props) {
                     onClick={reorder.exit}
                 >
                     <Check className="size-5" />
-                    Fine
+                    {t("monitor.done")}
                 </Button>
             )}
         </div>

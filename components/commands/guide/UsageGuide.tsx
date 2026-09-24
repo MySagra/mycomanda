@@ -13,6 +13,8 @@ import { Button } from "@/components/ui/button"
 import { useDeviceType } from "@/hooks/use-device-type"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { cn } from "cn"
+import type { TFunction } from "i18next"
+import { useTranslation } from "react-i18next"
 import {
     AutoCompleteIllustration,
     CompletedIllustration,
@@ -31,53 +33,42 @@ interface Step {
 }
 
 // Desktop and tablet share the steps; only the gestures differ.
-function buildSteps(touch: boolean): Step[] {
+function buildSteps(touch: boolean, t: TFunction): Step[] {
+    const gesture = touch ? "Touch" : "Mouse"
     return [
         {
-            title: "Segna i piatti pronti",
-            text: touch
-                ? "Tocca un piatto per segnare una porzione come pronta. Se la quantità è più di 1, tocca una volta per ogni porzione: la riga si riempie fino a diventare verde."
-                : "Clicca su un piatto per segnare una porzione come pronta. Se la quantità è più di 1, clicca una volta per ogni porzione: la riga si riempie fino a diventare verde.",
+            title: t("guide.dishesTitle"),
+            text: t(`guide.dishes${gesture}`),
             image: <DishProgressIllustration touch={touch} />,
         },
         {
-            title: "Completamento automatico",
-            text: touch
-                ? "Quando tutti i piatti di una card sono pronti, il bordo diventa verde e si svuota in 5 secondi: allo scadere l'ordine si completa da solo. Hai sbagliato? Tocca di nuovo un piatto prima che il bordo si svuoti."
-                : "Quando tutti i piatti di una card sono pronti, il bordo diventa verde e si svuota in 5 secondi: allo scadere l'ordine si completa da solo. Hai sbagliato? Clicca di nuovo un piatto prima che il bordo si svuoti.",
+            title: t("guide.autoTitle"),
+            text: t(`guide.auto${gesture}`),
             image: <AutoCompleteIllustration />,
         },
-        touch
-            ? {
-                  title: "Fissa o completa un ordine",
-                  text: "Tocca una card fuori dai piatti: si aprono i pulsanti Fissa, Completa e Annulla. Completa chiude l'ordine e lo toglie dal monitor.",
-                  image: <TapActionsIllustration />,
-              }
-            : {
-                  title: "Fissa o completa un ordine",
-                  text: "Passa il mouse sopra una card: in alto a destra compaiono due pulsanti. La puntina fissa l'ordine in cima, la spunta verde lo completa e lo toglie dal monitor.",
-                  image: <HoverActionsIllustration />,
-              },
         {
-            title: "Riordina le card",
-            text: touch
-                ? "Tieni premuta una card finché le card iniziano a tremare, poi trascinala dove vuoi. Quando hai finito tocca Fine."
-                : "Tieni premuto il tasto del mouse su una card e trascinala dove vuoi. Le altre card si spostano per farle posto.",
+            title: t("guide.actionsTitle"),
+            text: t(`guide.actions${gesture}`),
+            image: touch ? <TapActionsIllustration /> : <HoverActionsIllustration />,
+        },
+        {
+            title: t("guide.reorderTitle"),
+            text: t(`guide.reorder${gesture}`),
             image: <ReorderIllustration touch={touch} />,
         },
         {
-            title: "Ordini fissati",
-            text: "Gli ordini fissati stanno in cima, sopra la linea gialla, con il bordo evidenziato. Gli altri seguono dal più vecchio al più recente.",
+            title: t("guide.pinnedTitle"),
+            text: t("guide.pinnedText"),
             image: <PinnedIllustration />,
         },
         {
-            title: "Ordini completati",
-            text: "Con il pulsante Completati in alto vedi gli ordini chiusi oggi. Se ne hai chiuso uno per sbaglio, premi Riporta in lavorazione.",
+            title: t("guide.completedTitle"),
+            text: t("guide.completedText"),
             image: <CompletedIllustration />,
         },
         {
-            title: "Stampanti e dispositivo",
-            text: "Il monitor mostra solo le comande delle stampanti scelte: cambiale con Cambia in alto. In Impostazioni scegli se usi un computer o un tablet.",
+            title: t("guide.printersTitle"),
+            text: t("guide.printersText"),
             image: <PrintersIllustration />,
         },
     ]
@@ -102,7 +93,8 @@ export function UsageGuide({ open, onClose }: Props) {
 function GuideBody({ onClose }: { onClose: () => void }) {
     const { deviceType } = useDeviceType()
     const touch = deviceType === "tablet"
-    const steps = buildSteps(touch)
+    const { t } = useTranslation()
+    const steps = buildSteps(touch, t)
     const [index, setIndex] = useState(0)
     const step = steps[index]
     const last = index === steps.length - 1
@@ -111,7 +103,7 @@ function GuideBody({ onClose }: { onClose: () => void }) {
         <>
             <DialogHeader>
                 <span className="text-xs font-medium text-muted-foreground">
-                    Guida · {index + 1} di {steps.length}
+                    {t("guide.progress", { current: index + 1, total: steps.length })}
                 </span>
                 <DialogTitle className={cn("text-lg", touch && "text-xl")}>{step.title}</DialogTitle>
             </DialogHeader>
@@ -130,7 +122,7 @@ function GuideBody({ onClose }: { onClose: () => void }) {
                     <button
                         key={s.title}
                         type="button"
-                        aria-label={`Vai al passo ${i + 1}`}
+                        aria-label={t("guide.goToStep", { step: i + 1 })}
                         onClick={() => setIndex(i)}
                         className={cn(
                             "h-2 cursor-pointer rounded-full transition-all",
@@ -145,16 +137,16 @@ function GuideBody({ onClose }: { onClose: () => void }) {
                     {index > 0 && (
                         <Button variant="outline" className="cursor-pointer" onClick={() => setIndex(index - 1)}>
                             <ChevronLeft />
-                            Indietro
+                            {t("guide.back")}
                         </Button>
                     )}
                     {last ? (
                         <Button className="cursor-pointer" onClick={onClose}>
-                            Inizia
+                            {t("guide.start")}
                         </Button>
                     ) : (
                         <Button className="cursor-pointer" onClick={() => setIndex(index + 1)}>
-                            Avanti
+                            {t("guide.next")}
                             <ChevronRight />
                         </Button>
                     )}

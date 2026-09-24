@@ -12,6 +12,7 @@ import { CountdownBorder } from "./CountdownBorder"
 import { EXIT_ANIMATION_MS } from "./useOrderReorder"
 import { useItemProgress } from "./useMonitorState"
 import type { SSEOrder } from "./types"
+import { useTranslation } from "react-i18next"
 
 // Grace period between the last dish marked ready and the automatic completion,
 // long enough to undo a mistaken tap.
@@ -49,6 +50,7 @@ export function DraggableOrder({
     const [completing, setCompleting] = useState(false)
     const [actionsOpen, setActionsOpen] = useState(false)
     const { deviceType } = useDeviceType()
+    const { t } = useTranslation()
     // Touch screens have no hover: on tablets a tap on the card opens the
     // actions full screen instead of the round buttons on the card edge.
     const isTablet = deviceType === "tablet"
@@ -130,8 +132,8 @@ export function DraggableOrder({
                                     : "bg-background hover:bg-secondary dark:bg-secondary dark:hover:bg-secondary dark:hover:brightness-125",
                             )}
                             onClick={() => onTogglePin(order.id)}
-                            aria-label={pinned ? "Rimuovi fissaggio" : "Fissa in alto"}
-                            title={pinned ? "Rimuovi fissaggio" : "Fissa in alto"}
+                            aria-label={pinned ? t("monitor.unpin") : t("monitor.pin")}
+                            title={pinned ? t("monitor.unpin") : t("monitor.pin")}
                         >
                             <Pin className={cn("size-5", pinned && "fill-current")} />
                         </Button>
@@ -144,8 +146,8 @@ export function DraggableOrder({
                             )}
                             onClick={complete}
                             disabled={completing}
-                            aria-label="Completa ordine"
-                            title="Completa ordine"
+                            aria-label={t("monitor.completeOrder")}
+                            title={t("monitor.completeOrder")}
                         >
                             {completing ? <Spinner /> : <Check />}
                         </Button>

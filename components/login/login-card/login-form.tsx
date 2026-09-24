@@ -42,7 +42,8 @@ export function LoginForm() {
                 await new Promise(resolve => setTimeout(resolve, 100));
                 window.location.href = '/commands';
             } else {
-                toast.error(result.error || t('loginForm.invalidCredentials'));
+                // The server action returns a translation key.
+                toast.error(t(result.error ?? 'loginForm.invalidCredentials'));
                 form.reset();
             }
         } catch (error) {

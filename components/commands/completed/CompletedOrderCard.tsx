@@ -10,6 +10,7 @@ import { useDeviceType } from "@/hooks/use-device-type"
 import { CheckCheck, Hash, Undo2, User, Utensils } from "lucide-react"
 import { cn } from "cn"
 import type { SSEOrder } from "@/components/commands/monitor/types"
+import { useTranslation } from "react-i18next"
 
 interface Props {
     order: SSEOrder
@@ -17,15 +18,16 @@ interface Props {
     onRestore: (id: string) => Promise<void>
 }
 
-function formatTime(iso: string | null | undefined) {
+function formatTime(iso: string | null | undefined, locale: string) {
     if (!iso) return "—"
     const d = new Date(iso)
-    return Number.isNaN(d.getTime()) ? iso : d.toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" })
+    return Number.isNaN(d.getTime()) ? iso : d.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" })
 }
 
 export function CompletedOrderCard({ order, printerIds, onRestore }: Props) {
     const [restoring, setRestoring] = useState(false)
     const { deviceType } = useDeviceType()
+    const { t, i18n } = useTranslation()
     const items = order.orderItems.filter((it) => it.food?.printerId != null && printerIds.includes(it.food.printerId))
 
     async function restore() {
@@ -50,10 +52,10 @@ export function CompletedOrderCard({ order, printerIds, onRestore }: Props) {
                     </div>
                     <div
                         className="flex items-center gap-1 text-sm text-green-600 dark:text-green-500"
-                        title="Completato alle"
+                        title={t("completed.completedAt")}
                     >
                         <CheckCheck className="h-4 w-4" />
-                        {formatTime(order.completedAt)}
+                        {formatTime(order.completedAt, i18n.language)}
                     </div>
                 </div>
 
@@ -95,7 +97,7 @@ export function CompletedOrderCard({ order, printerIds, onRestore }: Props) {
                     disabled={restoring}
                 >
                     {restoring ? <Spinner /> : <Undo2 className="size-4" />}
-                    Riporta in lavorazione
+                    {t("completed.restore")}
                 </Button>
             </CardFooter>
         </Card>

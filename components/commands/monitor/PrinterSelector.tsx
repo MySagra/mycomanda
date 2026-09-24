@@ -16,6 +16,7 @@ import { Spinner } from "@/components/ui/spinner"
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty"
 import { Printer as PrinterIcon, RefreshCw } from "lucide-react"
 import type { Printer } from "./types"
+import { useTranslation } from "react-i18next"
 
 interface Props {
     open: boolean
@@ -65,6 +66,7 @@ function PrinterSelectorBody({ required, selectedIds, onCancel, onConfirm }: Bod
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const [checked, setChecked] = useState<Set<string>>(() => new Set(selectedIds))
+    const { t } = useTranslation()
 
     async function load() {
         setLoading(true)
@@ -75,7 +77,7 @@ function PrinterSelectorBody({ required, selectedIds, onCancel, onConfirm }: Bod
             const data = (await res.json()) as Printer[]
             setPrinters(Array.isArray(data) ? data : [])
         } catch (e) {
-            setError(e instanceof Error ? e.message : "Errore caricamento stampanti")
+            setError(e instanceof Error ? e.message : t("printers.loadError"))
         } finally {
             setLoading(false)
         }
@@ -105,10 +107,10 @@ function PrinterSelectorBody({ required, selectedIds, onCancel, onConfirm }: Bod
             <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
                     <PrinterIcon className="h-5 w-5" />
-                    Seleziona stampanti
+                    {t("printers.title")}
                 </DialogTitle>
                 <DialogDescription>
-                    Scegli una o più stampanti da monitorare. Verranno mostrate solo le comande destinate alle stampanti selezionate.
+                    {t("printers.description")}
                 </DialogDescription>
             </DialogHeader>
 
@@ -122,12 +124,12 @@ function PrinterSelectorBody({ required, selectedIds, onCancel, onConfirm }: Bod
                 {!loading && error && (
                     <Empty>
                         <EmptyHeader>
-                            <EmptyTitle>Errore</EmptyTitle>
+                            <EmptyTitle>{t("common.error")}</EmptyTitle>
                             <EmptyDescription>{error}</EmptyDescription>
                         </EmptyHeader>
                         <Button variant="outline" size="sm" onClick={load} className="mt-2">
                             <RefreshCw className="h-4 w-4" />
-                            Riprova
+                            {t("common.retry")}
                         </Button>
                     </Empty>
                 )}
@@ -135,8 +137,8 @@ function PrinterSelectorBody({ required, selectedIds, onCancel, onConfirm }: Bod
                 {!loading && !error && printers.length === 0 && (
                     <Empty>
                         <EmptyHeader>
-                            <EmptyTitle>Nessuna stampante</EmptyTitle>
-                            <EmptyDescription>Configura almeno una stampante nelle impostazioni.</EmptyDescription>
+                            <EmptyTitle>{t("printers.emptyTitle")}</EmptyTitle>
+                            <EmptyDescription>{t("printers.emptyDescription")}</EmptyDescription>
                         </EmptyHeader>
                     </Empty>
                 )}
@@ -170,11 +172,11 @@ function PrinterSelectorBody({ required, selectedIds, onCancel, onConfirm }: Bod
             <DialogFooter>
                 {!required && (
                     <Button variant="outline" className="cursor-pointer" onClick={onCancel}>
-                        Annulla
+                        {t("common.cancel")}
                     </Button>
                 )}
                 <Button className="cursor-pointer" disabled={selectedCount === 0} onClick={confirm}>
-                    Conferma{selectedCount > 0 && ` (${selectedCount})`}
+                    {t("common.confirm")}{selectedCount > 0 && ` (${selectedCount})`}
                 </Button>
             </DialogFooter>
         </>

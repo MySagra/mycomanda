@@ -22,8 +22,22 @@
   </head>
   <body>
     <img src="/logo.svg" alt="MyComanda" />
-    <h1>Sei offline</h1>
-    <p>Impossibile raggiungere il server. Controlla la connessione.</p>
-    <button onclick="location.reload()">Riprova</button>
+    <h1 id="title">Sei offline</h1>
+    <p id="text">Impossibile raggiungere il server. Controlla la connessione.</p>
+    <button id="retry" onclick="location.reload()">Riprova</button>
+    <script>
+      // Same language the app saved (I18nProvider stores it in localStorage).
+      var strings = {
+        en: { title: "You are offline", text: "Unable to reach the server. Check your connection.", retry: "Retry" },
+      };
+      var lang;
+      try { lang = localStorage.getItem("app_lang"); } catch (e) {}
+      var t = strings[lang];
+      if (t) {
+        document.documentElement.lang = lang;
+        document.title = "MyComanda - Offline";
+        for (var id in t) document.getElementById(id).textContent = t[id];
+      }
+    </script>
   </body>
 </html>

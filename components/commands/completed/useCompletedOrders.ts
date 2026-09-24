@@ -32,7 +32,8 @@ export function useCompletedOrders(printerIds: string[]) {
             })
             .catch((err) => {
                 console.warn("[completed] fetch failed", err)
-                if (!cancelled) setError("Impossibile caricare gli ordini completati")
+                // Translation key: the list shows it in the current language.
+                if (!cancelled) setError("completed.loadError")
             })
             .finally(() => {
                 if (!cancelled) setLoading(false)

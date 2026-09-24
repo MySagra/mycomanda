@@ -51,7 +51,7 @@ export function SettingsHeader() {
 
                     <Button variant="outline" className="cursor-pointer"  onClick={() => router.push("/commands")}>
                         <ArrowLeft className="h-5 w-5" />
-                        Torna alle comande
+                        {t("header.backToOrders")}
                     </Button>
 
                     <ButtonGroup>

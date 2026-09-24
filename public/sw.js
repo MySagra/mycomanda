@@ -1,6 +1,6 @@
 // Minimal service worker: makes the app installable and serves an offline page.
 // Orders are live data (SSE + API), so API calls and pages are never cached.
-const CACHE = "mycomanda-v1";
+const CACHE = "mycomanda-v2";
 const OFFLINE_URL = "/offline.html";
 const PRECACHE = [OFFLINE_URL, "/logo.svg", "/icons/icon-192.png"];
 

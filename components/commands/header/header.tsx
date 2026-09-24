@@ -11,6 +11,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { usePrinterSelection } from "@/components/commands/monitor/PrinterSelectionContext"
 import { useGuide } from "@/components/commands/guide/GuideContext"
+import { useTranslation } from "react-i18next"
 
 export function Header() {
     const { theme, setTheme } = useTheme()
@@ -21,6 +22,7 @@ export function Header() {
     const { user } = useAuth()
     const { printers, setDialogOpen } = usePrinterSelection()
     const { openGuide } = useGuide()
+    const { t } = useTranslation()
 
     useEffect(() => {
         setMounted(true)
@@ -69,7 +71,7 @@ export function Header() {
                                 onClick={() => setDialogOpen(true)}
                             >
                                 <RefreshCw className="h-4 w-4" />
-                                Cambia
+                                {t("header.change")}
                             </Button>
                         </div>
                     )}
@@ -79,13 +81,13 @@ export function Header() {
                         onClick={() => router.push(onCompletedPage ? "/commands" : "/commands/completed")}
                     >
                         {onCompletedPage ? <LayoutGrid className="h-4 w-4" /> : <CheckCheck className="h-4 w-4" />}
-                        {onCompletedPage ? "Monitor" : "Completati"}
+                        {onCompletedPage ? t("header.monitor") : t("header.completed")}
                     </Button>
                     <ButtonGroup>
-                        <Button variant="outline" className="cursor-pointer" size="icon" onClick={openGuide} title="Guida">
+                        <Button variant="outline" className="cursor-pointer" size="icon" onClick={openGuide} title={t("header.guide")}>
                             <CircleHelp className="h-5 w-5" />
                         </Button>
-                        <Button variant="outline" className="cursor-pointer" size="icon" onClick={() => router.push("/settings")}>
+                        <Button variant="outline" className="cursor-pointer" size="icon" onClick={() => router.push("/settings")} title={t("header.settings")}>
                             <Settings className="h-5 w-5" />
                         </Button>
                         {mounted && (
