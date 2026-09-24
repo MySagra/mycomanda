@@ -19,8 +19,9 @@ export function SettingsHeader() {
     }
 
     return (
-        <header className="fixed top-0 w-full border-b bg-card z-50">
-            <div className="flex h-16 items-center justify-between px-4 md:px-6">
+        <header className="fixed top-0 w-full border-b bg-background z-50">
+            {/* --card is translucent in light mode: the opaque header background keeps content from showing through. */}
+            <div className="flex h-16 items-center justify-between px-4 md:px-6 bg-card">
                 <div className="flex items-center gap-2">
                     <img
                         src="/logo.svg"

@@ -45,8 +45,9 @@ export function Header() {
     }
 
     return (
-        <header className="fixed top-0 w-full border-b bg-card z-50">
-            <div className="flex h-16 items-center justify-between px-4 md:px-6">
+        <header className="fixed top-0 w-full border-b bg-background z-50">
+            {/* --card is translucent in light mode: the opaque header background keeps content from showing through. */}
+            <div className="flex h-16 items-center justify-between px-4 md:px-6 bg-card">
                 <div className="flex items-center gap-3 min-w-0 shrink-0">
                     <img className="mx-auto h-10 w-auto select-none" src="/logo.svg" />
                     <h1 className="hidden md:block text-2xl font-bold select-none">MyComanda</h1>
