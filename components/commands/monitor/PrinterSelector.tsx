@@ -15,7 +15,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Spinner } from "@/components/ui/spinner"
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty"
 import { Printer as PrinterIcon, RefreshCw } from "lucide-react"
-import type { Printer } from "./types"
+import type { CashRegister, Printer } from "./types"
 import { useTranslation } from "react-i18next"
 
 interface Props {
@@ -72,10 +72,21 @@ function PrinterSelectorBody({ required, selectedIds, onCancel, onConfirm }: Bod
         setLoading(true)
         setError(null)
         try {
-            const res = await fetch("/api/printers", { cache: "no-store" })
-            if (!res.ok) throw new Error(`HTTP ${res.status}`)
-            const data = (await res.json()) as Printer[]
-            setPrinters(Array.isArray(data) ? data : [])
+            const [printersRes, cashRegistersRes] = await Promise.all([
+                fetch("/api/printers", { cache: "no-store" }),
+                fetch("/api/cash-registers", { cache: "no-store" }),
+            ])
+            if (!printersRes.ok) throw new Error(`HTTP ${printersRes.status}`)
+            if (!cashRegistersRes.ok) throw new Error(`HTTP ${cashRegistersRes.status}`)
+            const data = (await printersRes.json()) as Printer[]
+            const cashRegisters = (await cashRegistersRes.json()) as CashRegister[]
+            // Printers bound to an enabled cash register print receipts, not kitchen tickets.
+            const cashRegisterPrinterIds = new Set(
+                (Array.isArray(cashRegisters) ? cashRegisters : [])
+                    .filter((c) => c.enabled)
+                    .map((c) => c.defaultPrinterId)
+            )
+            setPrinters((Array.isArray(data) ? data : []).filter((p) => !cashRegisterPrinterIds.has(p.id)))
         } catch (e) {
             setError(e instanceof Error ? e.message : t("printers.loadError"))
         } finally {

@@ -10,6 +10,13 @@ export interface Printer {
   status?: PrinterStatus;
 }
 
+export interface CashRegister {
+  id: string;
+  name: string;
+  enabled: boolean;
+  defaultPrinterId: string | null;
+}
+
 export interface SSEOrderItem {
   id: string;
   quantity: number;
