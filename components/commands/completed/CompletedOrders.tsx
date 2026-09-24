@@ -11,6 +11,7 @@ import { usePrinterSelection } from "@/components/commands/monitor/PrinterSelect
 import { patchOrderStatus } from "@/components/commands/monitor/serviceDayOrders"
 import { CompletedOrderCard } from "./CompletedOrderCard"
 import { useCompletedOrders } from "./useCompletedOrders"
+import { useCardSize } from "@/hooks/use-card-size"
 
 export function CompletedOrders() {
     const { printers, hydrated, select, dialogOpen, setDialogOpen } = usePrinterSelection()
@@ -37,6 +38,7 @@ export function CompletedOrders() {
 function CompletedList({ printerIds }: { printerIds: string[] }) {
     const { orders, loading, error, reload, removeOrder } = useCompletedOrders(printerIds)
     const { t } = useTranslation()
+    const { cardSizeStyle } = useCardSize()
 
     // Back to CONFIRMED: live monitors pick it up from the `order-status-update` event.
     async function restore(id: string) {
@@ -91,8 +93,8 @@ function CompletedList({ printerIds }: { printerIds: string[] }) {
                         </Empty>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-[repeat(auto-fill,minmax(18rem,1fr))] items-start gap-4 p-6">
-                        {/* Same columns as the live monitor: at least 18rem, stretched to fill the row. */}
+                    <div className="grid grid-cols-[repeat(auto-fill,minmax(var(--card-min-width,18rem),1fr))] items-start gap-4 p-6" style={cardSizeStyle}>
+                        {/* Same columns as the live monitor: at least the card size from the settings, stretched to fill the row. */}
                         {orders.map((o) => (
                             <CompletedOrderCard key={o.id} order={o} printerIds={printerIds} onRestore={restore} />
                         ))}

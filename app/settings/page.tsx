@@ -4,7 +4,6 @@ import { SettingsHeader } from "@/components/settings/header/SettingsHeader"
 import { AppearanceSettingsCard } from "@/components/settings/setting-card/AppearanceSettingsCard"
 import { DeviceSettingsCard } from "@/components/settings/setting-card/DeviceSettingsCard"
 import { GuideSettingsCard } from "@/components/settings/setting-card/GuideSettingsCard"
-import { LanguageSettingsCard } from "@/components/settings/setting-card/LanguageSettingsCard"
 import { PrintersSettingsCard } from "@/components/settings/setting-card/PrintersSettingsCard"
 import { PrinterSelectionProvider } from "@/components/commands/monitor/PrinterSelectionContext"
 import { GuideProvider } from "@/components/commands/guide/GuideContext"
@@ -20,7 +19,6 @@ export default function SettingsPage() {
                             <PrintersSettingsCard />
                             <DeviceSettingsCard />
                             <AppearanceSettingsCard />
-                            <LanguageSettingsCard />
                             <GuideSettingsCard />
                         </div>
                     </main>

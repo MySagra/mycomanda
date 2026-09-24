@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty"
 import { Separator } from "@/components/ui/separator"
 import { useDeviceType } from "@/hooks/use-device-type"
+import { useCardSize } from "@/hooks/use-card-size"
 import { Check, Utensils } from "lucide-react"
 import { toast } from "sonner"
 import { useTranslation } from "react-i18next"
@@ -22,13 +23,14 @@ interface Props {
     onCompleted: (id: string) => void
 }
 
-// Columns never narrower than a card's minimum width (18rem), as many as fit,
+// Columns never narrower than a card's minimum width (set in the settings), as many as fit,
 // stretched to fill the row. Pinned and regular rows share it, so they line up.
-const GRID_CLASS = "grid grid-cols-[repeat(auto-fill,minmax(18rem,1fr))] items-start gap-x-4 gap-y-8"
+const GRID_CLASS = "grid grid-cols-[repeat(auto-fill,minmax(var(--card-min-width,18rem),1fr))] items-start gap-x-4 gap-y-8"
 
 export function OrderGrid({ orders, printerIds, onCompleted }: Props) {
     const { pinned, unpinned, pinnedIds, leavingIds, move, togglePin } = useOrderReorder(orders)
     const { deviceType } = useDeviceType()
+    const { cardSizeStyle } = useCardSize()
     const { t } = useTranslation()
     const reorder = usePointerReorder({ mode: deviceType === "tablet" ? "touch" : "mouse", onMove: move })
     const ghostOrder = reorder.ghost && orders.find((o) => o.id === reorder.ghost?.id)
@@ -87,7 +89,7 @@ export function OrderGrid({ orders, printerIds, onCompleted }: Props) {
     }
 
     return (
-        <div className="flex min-h-full flex-col gap-4 p-6 pt-8" onClick={onGridClick}>
+        <div className="flex min-h-full flex-col gap-4 p-6 pt-8" style={cardSizeStyle} onClick={onGridClick}>
             {pinned.length > 0 && (
                 <>
                     <div className={GRID_CLASS}>
