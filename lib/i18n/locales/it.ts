@@ -130,6 +130,10 @@ export const it = {
       language: "Lingua",
       languageDescription: "Lingua dell'interfaccia.",
       interfaceLanguage: "Seleziona lingua",
+      guide: "Guida",
+      guideDescription: "Rivedi il tutorial che spiega come usare il monitor delle comande.",
+      tutorial: "Tutorial",
+      openGuide: "Apri tutorial",
       account: "Account",
       accountDescription: "Informazioni utente e sessione."
     }

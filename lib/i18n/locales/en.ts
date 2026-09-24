@@ -130,6 +130,10 @@ export const en = {
       language: "Language",
       languageDescription: "Interface language.",
       interfaceLanguage: "Select language",
+      guide: "Guide",
+      guideDescription: "Watch again the tutorial that explains how to use the order monitor.",
+      tutorial: "Tutorial",
+      openGuide: "Open tutorial",
       account: "Account",
       accountDescription: "User and session information."
     }
