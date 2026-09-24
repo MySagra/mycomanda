@@ -28,6 +28,7 @@ export const it = {
       settings: "Impostazioni",
       lightTheme: "Tema chiaro",
       darkTheme: "Tema scuro",
+      changePrinters: "Cambia stampanti",
       notices: "Avvisi",
       logout: "Esci"
     },

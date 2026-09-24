@@ -2,10 +2,9 @@
 
 import { Button } from "@/components/ui/button"
 import { ButtonGroup } from "@/components/ui/button-group"
-import { Badge } from "@/components/ui/badge"
 import { UserMenu } from "@/components/commands/header/UserMenu"
 import { useAuth } from "@/hooks/use-auth"
-import { CheckCheck, CircleHelp, LayoutGrid, Maximize, Minimize, Moon, Printer as PrinterIcon, RefreshCw, Settings, Sun } from "lucide-react"
+import { CheckCheck, CircleHelp, LayoutGrid, Maximize, Minimize, Moon, RefreshCw, Settings, Sun } from "lucide-react"
 import { useTheme } from "next-themes"
 import { usePathname, useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
@@ -47,33 +46,23 @@ export function Header() {
 
     return (
         <header className="fixed top-0 w-full border-b bg-card z-50">
-            <div className="flex h-16 items-center justify-between px-6">
+            <div className="flex h-16 items-center justify-between px-4 md:px-6">
                 <div className="flex items-center gap-3 min-w-0 shrink-0">
                     <img className="mx-auto h-10 w-auto select-none" src="/logo.svg" />
-                    <h1 className="text-2xl font-bold select-none">MyComanda</h1>
+                    <h1 className="hidden md:block text-2xl font-bold select-none">MyComanda</h1>
                 </div>
 
-                <div className="flex items-center gap-3 shrink-0">
+                <div className="flex items-center gap-2 md:gap-3 shrink-0">
                     {printers.length > 0 && (
-                        <div className="flex items-center gap-2 pr-3 border-r min-w-0">
-                            <div className="flex flex-wrap items-center gap-1 max-w-md">
-                                {printers.map((p) => (
-                                    <Badge key={p.id} variant="secondary" className="gap-1">
-                                        <PrinterIcon className="h-3.5 w-3.5" />
-                                        {p.name}
-                                    </Badge>
-                                ))}
-                            </div>
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                className="cursor-pointer h-8"
-                                onClick={() => setDialogOpen(true)}
-                            >
-                                <RefreshCw className="h-4 w-4" />
-                                {t("header.change")}
-                            </Button>
-                        </div>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="hidden md:inline-flex cursor-pointer h-8"
+                            onClick={() => setDialogOpen(true)}
+                        >
+                            <RefreshCw className="h-4 w-4" />
+                            {t("userMenu.changePrinters")}
+                        </Button>
                     )}
                     <Button
                         variant="outline"
@@ -81,9 +70,9 @@ export function Header() {
                         onClick={() => router.push(onCompletedPage ? "/commands" : "/commands/completed")}
                     >
                         {onCompletedPage ? <LayoutGrid className="h-4 w-4" /> : <CheckCheck className="h-4 w-4" />}
-                        {onCompletedPage ? t("header.monitor") : t("header.completed")}
+                        <span className="hidden md:inline">{onCompletedPage ? t("header.monitor") : t("header.completed")}</span>
                     </Button>
-                    <ButtonGroup>
+                    <ButtonGroup className="hidden md:flex">
                         <Button variant="outline" className="cursor-pointer" size="icon" onClick={openGuide} title={t("header.guide")}>
                             <CircleHelp className="h-5 w-5" />
                         </Button>
@@ -110,7 +99,15 @@ export function Header() {
                         </Button>
                     </ButtonGroup>
 
-                    {user && <UserMenu user={user} onLogout={handleLogout} />}
+                    {user && (
+                        <UserMenu
+                            user={user}
+                            onLogout={handleLogout}
+                            onOpenGuide={openGuide}
+                            printers={printers}
+                            onChangePrinters={() => setDialogOpen(true)}
+                        />
+                    )}
                 </div>
             </div>
         </header>

@@ -14,7 +14,7 @@ import {
     DropdownMenuSubContent,
     DropdownMenuCheckboxItem
 } from "@/components/ui/dropdown-menu"
-import { ChevronDownIcon, LogOutIcon, Settings, Sun, Moon, FileText, Languages } from "lucide-react"
+import { ChevronDownIcon, LogOutIcon, Settings, Sun, Moon, FileText, Languages, CircleHelp, Printer as PrinterIcon } from "lucide-react"
 import { useTheme } from "next-themes"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
@@ -27,6 +27,10 @@ interface UserMenuProps {
     }
     onLogout: () => void
     onOpenAvvisi?: () => void
+    onOpenGuide?: () => void
+    printers?: { id: number | string; name: string }[]
+    onChangePrinters?: () => void
+    showSettings?: boolean
 }
 
 function UserAvatar({ initials, large = false }: { initials: string; large?: boolean }) {
@@ -39,7 +43,7 @@ function UserAvatar({ initials, large = false }: { initials: string; large?: boo
     )
 }
 
-export function UserMenu({ user, onLogout, onOpenAvvisi }: UserMenuProps) {
+export function UserMenu({ user, onLogout, onOpenAvvisi, onOpenGuide, printers, onChangePrinters, showSettings = true }: UserMenuProps) {
     const initials = user.username.slice(0, 2).toUpperCase()
     const router = useRouter()
     const { theme, setTheme } = useTheme()
@@ -67,13 +71,33 @@ export function UserMenu({ user, onLogout, onOpenAvvisi }: UserMenuProps) {
                     </DropdownMenuLabel>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator className="md:hidden" />
-                <DropdownMenuItem
-                    className="md:hidden cursor-pointer"
-                    onClick={() => router.push("/settings")}
-                >
-                    <Settings className="h-4 w-4 bg-transparent outline-none border-none text-foreground" />
-                    {t("userMenu.settings")}
-                </DropdownMenuItem>
+                {printers && printers.length > 0 && onChangePrinters && (
+                    <DropdownMenuItem
+                        className="md:hidden cursor-pointer"
+                        onClick={onChangePrinters}
+                    >
+                        <PrinterIcon className="h-4 w-4 bg-transparent outline-none border-none text-foreground" />
+                        {t("userMenu.changePrinters")}
+                    </DropdownMenuItem>
+                )}
+                {onOpenGuide && (
+                    <DropdownMenuItem
+                        className="md:hidden cursor-pointer"
+                        onClick={onOpenGuide}
+                    >
+                        <CircleHelp className="h-4 w-4 bg-transparent outline-none border-none text-foreground" />
+                        {t("header.guide")}
+                    </DropdownMenuItem>
+                )}
+                {showSettings && (
+                    <DropdownMenuItem
+                        className="md:hidden cursor-pointer"
+                        onClick={() => router.push("/settings")}
+                    >
+                        <Settings className="h-4 w-4 bg-transparent outline-none border-none text-foreground" />
+                        {t("userMenu.settings")}
+                    </DropdownMenuItem>
+                )}
                 {mounted && (
                     <DropdownMenuItem
                         className="md:hidden cursor-pointer"

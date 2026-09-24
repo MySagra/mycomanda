@@ -41,20 +41,20 @@ export function SettingsHeader() {
 
     return (
         <header className="fixed top-0 w-full border-b bg-card z-50">
-            <div className="flex h-16 items-center justify-between px-6">
+            <div className="flex h-16 items-center justify-between px-4 md:px-6">
                 <div className="flex items-center gap-3 min-w-0 shrink-0">
                     <img className="mx-auto h-10 w-auto select-none" src="/logo.svg" />
-                    <h1 className="text-2xl font-bold select-none">{t("settingsHeader.title")}</h1>
+                    <h1 className="hidden md:block text-2xl font-bold select-none">{t("settingsHeader.title")}</h1>
                 </div>
 
                 <div className="flex items-center gap-2 shrink-0">
 
                     <Button variant="outline" className="cursor-pointer"  onClick={() => router.push("/commands")}>
                         <ArrowLeft className="h-5 w-5" />
-                        {t("header.backToOrders")}
+                        <span className="hidden md:inline">{t("header.backToOrders")}</span>
                     </Button>
 
-                    <ButtonGroup>
+                    <ButtonGroup className="hidden md:flex">
                         {mounted && (
                             <Button
                                 variant="outline"
@@ -75,7 +75,7 @@ export function SettingsHeader() {
                         </Button>
                     </ButtonGroup>
 
-                    {user && <UserMenu user={user} onLogout={handleLogout} />}
+                    {user && <UserMenu user={user} onLogout={handleLogout} showSettings={false} />}
                 </div>
             </div>
         </header>

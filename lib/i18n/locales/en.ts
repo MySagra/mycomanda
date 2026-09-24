@@ -28,6 +28,7 @@ export const en = {
       settings: "Settings",
       lightTheme: "Light theme",
       darkTheme: "Dark theme",
+      changePrinters: "Change printers",
       notices: "Notices",
       logout: "Logout"
     },
