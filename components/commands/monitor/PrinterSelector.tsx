@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import {
     Dialog,
     DialogContent,
@@ -10,12 +10,9 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Spinner } from "@/components/ui/spinner"
-import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty"
-import { Printer as PrinterIcon, RefreshCw } from "lucide-react"
-import type { CashRegister, Printer } from "./types"
+import { Printer as PrinterIcon } from "lucide-react"
+import type { Printer } from "./types"
+import { PrinterList, toggleInSet, useSelectablePrinters } from "./PrinterList"
 import { useTranslation } from "react-i18next"
 
 interface Props {
@@ -62,50 +59,9 @@ interface BodyProps {
 }
 
 function PrinterSelectorBody({ required, selectedIds, onCancel, onConfirm }: BodyProps) {
-    const [printers, setPrinters] = useState<Printer[]>([])
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState<string | null>(null)
+    const { printers, loading, error, reload } = useSelectablePrinters()
     const [checked, setChecked] = useState<Set<string>>(() => new Set(selectedIds))
     const { t } = useTranslation()
-
-    async function load() {
-        setLoading(true)
-        setError(null)
-        try {
-            const [printersRes, cashRegistersRes] = await Promise.all([
-                fetch("/api/printers", { cache: "no-store" }),
-                fetch("/api/cash-registers", { cache: "no-store" }),
-            ])
-            if (!printersRes.ok) throw new Error(`HTTP ${printersRes.status}`)
-            if (!cashRegistersRes.ok) throw new Error(`HTTP ${cashRegistersRes.status}`)
-            const data = (await printersRes.json()) as Printer[]
-            const cashRegisters = (await cashRegistersRes.json()) as CashRegister[]
-            // Printers bound to an enabled cash register print receipts, not kitchen tickets.
-            const cashRegisterPrinterIds = new Set(
-                (Array.isArray(cashRegisters) ? cashRegisters : [])
-                    .filter((c) => c.enabled)
-                    .map((c) => c.defaultPrinterId)
-            )
-            setPrinters((Array.isArray(data) ? data : []).filter((p) => !cashRegisterPrinterIds.has(p.id)))
-        } catch (e) {
-            setError(e instanceof Error ? e.message : t("printers.loadError"))
-        } finally {
-            setLoading(false)
-        }
-    }
-
-    useEffect(() => {
-        load()
-    }, [])
-
-    function toggle(id: string, value: boolean) {
-        setChecked((prev) => {
-            const next = new Set(prev)
-            if (value) next.add(id)
-            else next.delete(id)
-            return next
-        })
-    }
 
     function confirm() {
         onConfirm(printers.filter((p) => checked.has(p.id)))
@@ -126,58 +82,14 @@ function PrinterSelectorBody({ required, selectedIds, onCancel, onConfirm }: Bod
             </DialogHeader>
 
             <div className="flex max-h-[60vh] flex-col gap-2 overflow-y-auto">
-                {loading && (
-                    <div className="flex items-center justify-center py-8">
-                        <Spinner />
-                    </div>
-                )}
-
-                {!loading && error && (
-                    <Empty>
-                        <EmptyHeader>
-                            <EmptyTitle>{t("common.error")}</EmptyTitle>
-                            <EmptyDescription>{error}</EmptyDescription>
-                        </EmptyHeader>
-                        <Button variant="outline" size="sm" onClick={load} className="mt-2">
-                            <RefreshCw className="h-4 w-4" />
-                            {t("common.retry")}
-                        </Button>
-                    </Empty>
-                )}
-
-                {!loading && !error && printers.length === 0 && (
-                    <Empty>
-                        <EmptyHeader>
-                            <EmptyTitle>{t("printers.emptyTitle")}</EmptyTitle>
-                            <EmptyDescription>{t("printers.emptyDescription")}</EmptyDescription>
-                        </EmptyHeader>
-                    </Empty>
-                )}
-
-                {!loading && !error && printers.map((p) => (
-                    <label
-                        key={p.id}
-                        className="flex cursor-pointer items-center gap-3 rounded-lg border px-4 py-3 hover:bg-muted/50 has-data-checked:border-primary has-data-checked:bg-primary/5"
-                    >
-                        <Checkbox
-                            checked={checked.has(p.id)}
-                            onCheckedChange={(value) => toggle(p.id, value)}
-                        />
-                        <span className="flex flex-1 flex-col items-start gap-0.5">
-                            <span className="font-medium">{p.name}</span>
-                            {p.description && (
-                                <span className="text-xs text-muted-foreground">{p.description}</span>
-                            )}
-                        </span>
-                        {p.status && (
-                            <Badge
-                                variant={p.status === "ONLINE" ? "default" : p.status === "ERROR" ? "destructive" : "secondary"}
-                            >
-                                {p.status}
-                            </Badge>
-                        )}
-                    </label>
-                ))}
+                <PrinterList
+                    printers={printers}
+                    loading={loading}
+                    error={error}
+                    onRetry={reload}
+                    checked={checked}
+                    onToggle={(id, value) => setChecked((prev) => toggleInSet(prev, id, value))}
+                />
             </div>
 
             <DialogFooter>

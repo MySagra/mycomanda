@@ -46,6 +46,7 @@ export const en = {
       error: "Error",
       retry: "Retry",
       cancel: "Cancel",
+      save: "Save",
       confirm: "Confirm",
       refresh: "Refresh",
       dish: "Dish"
@@ -113,6 +114,12 @@ export const en = {
       subtitle: "Manage the application preferences.",
       appearance: "Appearance",
       appearanceDescription: "Theme and display.",
+      theme: "Theme",
+      themeDescription: "Choose between light and dark theme",
+      light: "Light",
+      dark: "Dark",
+      printers: "Printers",
+      printersSaved: "Printers saved",
       device: "Device",
       deviceDescription: "Type of device the application is open on.",
       desktop: "Desktop",
@@ -122,6 +129,7 @@ export const en = {
       detected: "Detected",
       language: "Language",
       languageDescription: "Interface language.",
+      interfaceLanguage: "Select language",
       account: "Account",
       accountDescription: "User and session information."
     }

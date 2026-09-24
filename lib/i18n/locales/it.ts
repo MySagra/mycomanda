@@ -46,6 +46,7 @@ export const it = {
       error: "Errore",
       retry: "Riprova",
       cancel: "Annulla",
+      save: "Salva",
       confirm: "Conferma",
       refresh: "Aggiorna",
       dish: "Piatto"
@@ -113,6 +114,12 @@ export const it = {
       subtitle: "Gestisci le preferenze dell'applicazione.",
       appearance: "Aspetto",
       appearanceDescription: "Tema e visualizzazione.",
+      theme: "Tema",
+      themeDescription: "Scegli tra tema chiaro e scuro",
+      light: "Chiaro",
+      dark: "Scuro",
+      printers: "Stampanti",
+      printersSaved: "Stampanti salvate",
       device: "Dispositivo",
       deviceDescription: "Tipo di dispositivo su cui è aperta l'applicazione.",
       desktop: "Desktop",
@@ -122,6 +129,7 @@ export const it = {
       detected: "Rilevato",
       language: "Lingua",
       languageDescription: "Lingua dell'interfaccia.",
+      interfaceLanguage: "Seleziona lingua",
       account: "Account",
       accountDescription: "Informazioni utente e sessione."
     }
