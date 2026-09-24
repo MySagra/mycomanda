@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#09090b" />
+    <title>MyComanda - Offline</title>
+    <style>
+      html, body { height: 100%; margin: 0; }
+      body {
+        display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
+        background: #09090b; color: #fafafa; font-family: system-ui, sans-serif; text-align: center; padding: 16px;
+      }
+      img { width: 96px; height: auto; }
+      h1 { font-size: 1.25rem; margin: 0; }
+      p { margin: 0; color: #a1a1aa; }
+      button {
+        margin-top: 8px; padding: 10px 20px; border: 0; border-radius: 8px;
+        background: #fecc02; color: #09090b; font-weight: 600; font-size: 1rem; cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <img src="/logo.svg" alt="MyComanda" />
+    <h1>Sei offline</h1>
+    <p>Impossibile raggiungere il server. Controlla la connessione.</p>
+    <button onclick="location.reload()">Riprova</button>
+  </body>
+</html>
