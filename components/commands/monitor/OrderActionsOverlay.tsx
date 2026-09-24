@@ -7,6 +7,8 @@ import { Spinner } from "@/components/ui/spinner"
 import { Check, Hash, Pin, X } from "lucide-react"
 import { cn } from "cn"
 import type { SSEOrder } from "./types"
+import { orderLabels } from "./orderLabel"
+import { useEnv } from "@/lib/contexts/EnvContext"
 import { useTranslation } from "react-i18next"
 
 interface Props {
@@ -29,6 +31,8 @@ const enter = "animate-in fade-in-0 fill-mode-both duration-300 ease-out"
  */
 export function OrderActionsOverlay({ order, open, pinned, completing, onOpenChange, onTogglePin, onComplete }: Props) {
     const { t } = useTranslation()
+    const { showNumbers } = useEnv()
+    const labels = orderLabels(order, showNumbers)
 
     // The popup covers the whole screen, so the backdrop never receives taps:
     // any tap that does not land on a button counts as a tap outside.
@@ -49,10 +53,10 @@ export function OrderActionsOverlay({ order, open, pinned, completing, onOpenCha
                     <div className={cn(enter, "slide-in-from-top-4 flex flex-col items-center gap-2 text-center text-white")}>
                         <DialogPrimitive.Title className="flex items-center gap-2 text-3xl font-bold">
                             <Hash className="size-7" />
-                            {order.displayCode}
+                            {labels.primary}
                         </DialogPrimitive.Title>
                         <DialogPrimitive.Description className="text-base text-white/80">
-                            {[order.ticketNumber != null && t("monitor.ticket", { number: order.ticketNumber }), order.table, order.customer]
+                            {[labels.secondary, order.table, order.customer]
                                 .filter(Boolean)
                                 .join(" · ")}
                         </DialogPrimitive.Description>

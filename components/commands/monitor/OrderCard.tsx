@@ -8,6 +8,8 @@ import { Check, Clock, Hash, User, Utensils } from "lucide-react"
 import { cn } from "cn"
 import { advanceItem, useItemProgress } from "./useMonitorState"
 import type { SSEOrder, SSEOrderItem } from "./types"
+import { orderLabels } from "./orderLabel"
+import { useEnv } from "@/lib/contexts/EnvContext"
 import { useTranslation } from "react-i18next"
 
 interface Props {
@@ -36,6 +38,8 @@ function formatTime(iso: string, locale: string) {
 export function OrderCard({ order, printerIds, pinned, ready = false, interactive = false, roomForActions = false }: Props) {
     const progress = useItemProgress()
     const { i18n } = useTranslation()
+    const { showNumbers } = useEnv()
+    const labels = orderLabels(order, showNumbers)
     const items = order.orderItems.filter((it) => it.food?.printerId != null && printerIds.includes(it.food.printerId))
     if (items.length === 0) return null
 
@@ -52,10 +56,10 @@ export function OrderCard({ order, printerIds, pinned, ready = false, interactiv
                     <div className="flex items-center gap-2">
                         <Badge variant="default" className="text-base px-2.5 py-0.5">
                             <Hash className="h-3.5 w-3.5" />
-                            {order.displayCode}
+                            {labels.primary}
                         </Badge>
-                        {order.ticketNumber != null && (
-                            <Badge variant="secondary">#{order.ticketNumber}</Badge>
+                        {labels.secondary && (
+                            <Badge variant="secondary">{labels.secondary}</Badge>
                         )}
                     </div>
                     <div className="flex items-center gap-1 text-sm text-muted-foreground">

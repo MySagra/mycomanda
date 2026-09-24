@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { I18nProvider } from "@/lib/i18n/I18nProvider";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
+import { EnvProviderWrapper } from "@/components/providers/EnvProviderWrapper";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -49,7 +50,9 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <I18nProvider>
-            {children}
+            <EnvProviderWrapper>
+              {children}
+            </EnvProviderWrapper>
             <Toaster position="top-center" offset="6px" />
             <ServiceWorkerRegister />
           </I18nProvider>

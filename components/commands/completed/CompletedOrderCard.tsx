@@ -10,6 +10,8 @@ import { useDeviceType } from "@/hooks/use-device-type"
 import { CheckCheck, Hash, Undo2, User, Utensils } from "lucide-react"
 import { cn } from "cn"
 import type { SSEOrder } from "@/components/commands/monitor/types"
+import { orderLabels } from "@/components/commands/monitor/orderLabel"
+import { useEnv } from "@/lib/contexts/EnvContext"
 import { useTranslation } from "react-i18next"
 
 interface Props {
@@ -28,6 +30,8 @@ export function CompletedOrderCard({ order, printerIds, onRestore }: Props) {
     const [restoring, setRestoring] = useState(false)
     const { deviceType } = useDeviceType()
     const { t, i18n } = useTranslation()
+    const { showNumbers } = useEnv()
+    const labels = orderLabels(order, showNumbers)
     const items = order.orderItems.filter((it) => it.food?.printerId != null && printerIds.includes(it.food.printerId))
 
     async function restore() {
@@ -46,9 +50,9 @@ export function CompletedOrderCard({ order, printerIds, onRestore }: Props) {
                     <div className="flex items-center gap-2">
                         <Badge variant="secondary" className="text-base px-2.5 py-0.5">
                             <Hash className="h-3.5 w-3.5" />
-                            {order.displayCode}
+                            {labels.primary}
                         </Badge>
-                        {order.ticketNumber != null && <Badge variant="outline">#{order.ticketNumber}</Badge>}
+                        {labels.secondary && <Badge variant="outline">{labels.secondary}</Badge>}
                     </div>
                     <div
                         className="flex items-center gap-1 text-sm text-green-600 dark:text-green-500"
