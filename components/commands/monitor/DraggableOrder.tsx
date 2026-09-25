@@ -98,7 +98,7 @@ export function DraggableOrder({
                 onPointerDown={onReorderPointerDown}
                 // Long press would otherwise open the system context menu.
                 onContextMenu={isTablet ? (e) => e.preventDefault() : undefined}
-                onClick={isTablet && !reordering ? () => setActionsOpen(true) : undefined}
+                onClick={isTablet && !reordering && !completedLocally ? () => setActionsOpen(true) : undefined}
                 style={
                     leaving
                         ? { animationDuration: `${EXIT_ANIMATION_MS}ms` }
@@ -122,8 +122,9 @@ export function DraggableOrder({
                         <GripVertical className="h-3.5 w-3.5 text-muted-foreground" />
                     </div>
                 )}
-                {/* Round actions straddling the card's top edge, above the card. */}
-                {!isTablet && (
+                {/* Round actions straddling the card's top edge, above the card. An order
+                    completed on this device only has none: it can no longer be pinned or completed. */}
+                {!isTablet && !completedLocally && (
                     <div className="absolute top-0 right-3 z-20 flex -translate-y-1/2 gap-2">
                         <Button
                             variant={pinned ? "default" : "outline"}
@@ -177,7 +178,7 @@ export function DraggableOrder({
             </div>
             {/* Outside the card: React events bubble through portals, so a tap
                 inside the overlay would otherwise reach the card and reopen it. */}
-            {isTablet && (
+            {isTablet && !completedLocally && (
                 <OrderActionsOverlay
                     order={order}
                     open={actionsOpen}

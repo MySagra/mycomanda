@@ -147,7 +147,7 @@ export function useOrderReorder(orders: SSEOrder[]) {
     // Completed on this device only: the order moves, unpinned, to the end of the completed row.
     function completeLocally(id: string) {
         setOrder((prev) => [...prev.filter((x) => x !== id), id])
-        completeOrderLocally(id)
+        completeOrderLocally(id, orders.find((o) => o.id === id)?.orderItems ?? [])
     }
 
     return { pinned, regular, completed, pinnedIds, leavingIds, move, togglePin, completeLocally }

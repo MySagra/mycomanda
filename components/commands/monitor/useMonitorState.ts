@@ -116,6 +116,10 @@ function subscribe(onChange: () => void) {
     }
 }
 
+function progressOf(orderId: string, item: SSEOrderItem, completed: number, updatedAt: string): ItemProgress {
+    return { orderId, orderItemId: item.id, foodId: item.foodId ?? item.food?.id ?? null, completed, updatedAt }
+}
+
 /**
  * One more portion of the item is ready. Past the full quantity the count
  * starts again from zero, so a mistaken tap can be undone.
@@ -128,13 +132,7 @@ export function advanceItem(orderId: string, item: SSEOrderItem) {
     if (completed === 0) {
         delete items[item.id]
     } else {
-        items[item.id] = {
-            orderId,
-            orderItemId: item.id,
-            foodId: item.foodId ?? item.food?.id ?? null,
-            completed,
-            updatedAt: new Date().toISOString(),
-        }
+        items[item.id] = progressOf(orderId, item, completed, new Date().toISOString())
     }
     // Working on a dish again means the order is no longer completed.
     const completedOrders = { ...current.completed }
@@ -150,13 +148,19 @@ export function togglePinnedOrder(orderId: string) {
     write({ ...current, pinned })
 }
 
-/** The order is completed on this device only; a pinned one loses its pin. */
-export function completeOrderLocally(orderId: string) {
+/**
+ * The order is completed on this device only: every dish is marked ready and
+ * a pinned order loses its pin.
+ */
+export function completeOrderLocally(orderId: string, orderItems: SSEOrderItem[]) {
     const current = getSnapshot()
+    const now = new Date().toISOString()
+    const items = { ...current.items }
+    for (const item of orderItems) items[item.id] = progressOf(orderId, item, item.quantity, now)
     const pinned = { ...current.pinned }
     delete pinned[orderId]
-    const completed = { ...current.completed, [orderId]: { orderId, completedAt: new Date().toISOString() } }
-    write({ ...current, pinned, completed })
+    const completed = { ...current.completed, [orderId]: { orderId, completedAt: now } }
+    write({ ...current, items, pinned, completed })
 }
 
 /** Every order completed on this device only goes back among the others. */
