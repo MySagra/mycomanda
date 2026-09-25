@@ -1,11 +1,12 @@
 "use client"
 
-import type { MouseEvent } from "react"
+import { Fragment, type MouseEvent } from "react"
 import { Button } from "@/components/ui/button"
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty"
 import { Separator } from "@/components/ui/separator"
 import { useDeviceType } from "@/hooks/use-device-type"
 import { useCardSize } from "@/hooks/use-card-size"
+import { useAutoCompletion } from "@/hooks/use-auto-completion"
 import { Check, Utensils } from "lucide-react"
 import { toast } from "sonner"
 import { useTranslation } from "react-i18next"
@@ -28,14 +29,20 @@ interface Props {
 const GRID_CLASS = "grid grid-cols-[repeat(auto-fill,minmax(var(--card-min-width,18rem),1fr))] items-start gap-x-4 gap-y-8"
 
 export function OrderGrid({ orders, printerIds, onCompleted }: Props) {
-    const { pinned, unpinned, pinnedIds, leavingIds, move, togglePin } = useOrderReorder(orders)
+    const { pinned, regular, completed, pinnedIds, leavingIds, move, togglePin, completeLocally } = useOrderReorder(orders)
     const { deviceType } = useDeviceType()
     const { cardSizeStyle } = useCardSize()
+    const { autoCompletion } = useAutoCompletion()
     const { t } = useTranslation()
     const reorder = usePointerReorder({ mode: deviceType === "tablet" ? "touch" : "mouse", onMove: move })
     const ghostOrder = reorder.ghost && orders.find((o) => o.id === reorder.ghost?.id)
 
     async function complete(id: string) {
+        // The server is left alone: the order only moves to the end of the list.
+        if (!autoCompletion) {
+            completeLocally(id)
+            return
+        }
         try {
             await patchOrderStatus(id, "COMPLETED")
             onCompleted(id)
@@ -72,7 +79,11 @@ export function OrderGrid({ orders, printerIds, onCompleted }: Props) {
         )
     }
 
-    if (pinned.length === 0 && unpinned.length === 0) {
+    // Pinned orders first, then the regular ones, then the ones completed on this device only.
+    // Fixed keys: a row must not remount, restarting its cards, when its first order changes.
+    const rows = Object.entries({ pinned, regular, completed }).filter(([, row]) => row.length > 0)
+
+    if (rows.length === 0) {
         return (
             <div className="flex flex-1 items-center justify-center p-6">
                 <Empty>
@@ -90,20 +101,15 @@ export function OrderGrid({ orders, printerIds, onCompleted }: Props) {
 
     return (
         <div className="flex min-h-full flex-col gap-4 p-6 pt-8" style={cardSizeStyle} onClick={onGridClick}>
-            {pinned.length > 0 && (
-                <>
-                    <div className={GRID_CLASS}>
-                        {pinned.map(renderOrder)}
-                    </div>
+            {rows.map(([key, row], i) => (
+                <Fragment key={key}>
                     {/* Extra room above: the round actions of the next row stick out of their cards. */}
-                    {unpinned.length > 0 && <Separator className="mt-2 mb-4 h-0.5 w-full rounded-full bg-primary/60" />}
-                </>
-            )}
-            {unpinned.length > 0 && (
-                <div className={GRID_CLASS}>
-                    {unpinned.map(renderOrder)}
-                </div>
-            )}
+                    {i > 0 && <Separator className="mt-2 mb-4 h-0.5 w-full rounded-full bg-primary/60" />}
+                    <div className={GRID_CLASS}>
+                        {row.map(renderOrder)}
+                    </div>
+                </Fragment>
+            ))}
 
             {reorder.ghost && ghostOrder && (
                 <div

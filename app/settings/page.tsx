@@ -3,6 +3,7 @@
 import { SettingsHeader } from "@/components/settings/header/SettingsHeader"
 import { AppearanceSettingsCard } from "@/components/settings/setting-card/AppearanceSettingsCard"
 import { DeviceSettingsCard } from "@/components/settings/setting-card/DeviceSettingsCard"
+import { MonitorSettingsCard } from "@/components/settings/setting-card/MonitorSettingsCard"
 import { GuideSettingsCard } from "@/components/settings/setting-card/GuideSettingsCard"
 import { PrintersSettingsCard } from "@/components/settings/setting-card/PrintersSettingsCard"
 import { PrinterSelectionProvider } from "@/components/commands/monitor/PrinterSelectionContext"
@@ -18,6 +19,7 @@ export default function SettingsPage() {
                         <div className="container max-w-4xl mx-auto p-4 md:p-6 space-y-6">
                             <PrintersSettingsCard />
                             <DeviceSettingsCard />
+                            <MonitorSettingsCard />
                             <AppearanceSettingsCard />
                             <GuideSettingsCard />
                         </div>

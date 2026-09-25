@@ -1,6 +1,7 @@
 "use client"
 
 import { useSyncExternalStore } from "react"
+import { useAutoCompletion } from "@/hooks/use-auto-completion"
 import type { SSEOrderItem } from "./types"
 
 /**
@@ -13,8 +14,15 @@ import type { SSEOrderItem } from "./types"
  *     },
  *     "pinned": {
  *       "<orderId>": { "orderId", "pinnedAt" }
+ *     },
+ *     "completed": {
+ *       "<orderId>": { "orderId", "completedAt" }
  *     }
  *   }
+ *
+ * `completed` holds the orders completed on this device only, while
+ * auto-completion is off (see `useAutoCompletion`): they stay on the monitor,
+ * in a row after all the others.
  *
  * Item progress is keyed by order item, not by food: the same food can appear
  * twice in one order with different notes.
@@ -39,13 +47,19 @@ export interface PinnedOrder {
     pinnedAt: string
 }
 
+export interface LocallyCompletedOrder {
+    orderId: string
+    completedAt: string
+}
+
 interface MonitorState {
     version: 1
     items: Record<string, ItemProgress>
     pinned: Record<string, PinnedOrder>
+    completed: Record<string, LocallyCompletedOrder>
 }
 
-const EMPTY: MonitorState = { version: 1, items: {}, pinned: {} }
+const EMPTY: MonitorState = { version: 1, items: {}, pinned: {}, completed: {} }
 
 let cache: MonitorState | null = null
 const listeners = new Set<() => void>()
@@ -64,6 +78,7 @@ function read(): MonitorState {
             version: 1,
             items: recent(parsed.items, (p) => p.updatedAt),
             pinned: recent(parsed.pinned, (p) => p.pinnedAt),
+            completed: recent(parsed.completed, (c) => c.completedAt),
         }
     } catch {
         return EMPTY
@@ -121,7 +136,10 @@ export function advanceItem(orderId: string, item: SSEOrderItem) {
             updatedAt: new Date().toISOString(),
         }
     }
-    write({ ...current, items })
+    // Working on a dish again means the order is no longer completed.
+    const completedOrders = { ...current.completed }
+    delete completedOrders[orderId]
+    write({ ...current, items, completed: completedOrders })
 }
 
 export function togglePinnedOrder(orderId: string) {
@@ -132,15 +150,36 @@ export function togglePinnedOrder(orderId: string) {
     write({ ...current, pinned })
 }
 
+/** The order is completed on this device only; a pinned one loses its pin. */
+export function completeOrderLocally(orderId: string) {
+    const current = getSnapshot()
+    const pinned = { ...current.pinned }
+    delete pinned[orderId]
+    const completed = { ...current.completed, [orderId]: { orderId, completedAt: new Date().toISOString() } }
+    write({ ...current, pinned, completed })
+}
+
+/** Every order completed on this device only goes back among the others. */
+export function clearLocallyCompletedOrders() {
+    const current = getSnapshot()
+    if (Object.keys(current.completed).length === 0) return
+    write({ ...current, completed: {} })
+}
+
 /** Drops everything stored about an order that has left the monitor. */
 export function clearOrderState(orderId: string) {
     const current = getSnapshot()
     const items = Object.fromEntries(Object.entries(current.items).filter(([, p]) => p.orderId !== orderId))
-    const unchanged = Object.keys(items).length === Object.keys(current.items).length && !current.pinned[orderId]
+    const unchanged =
+        Object.keys(items).length === Object.keys(current.items).length &&
+        !current.pinned[orderId] &&
+        !current.completed[orderId]
     if (unchanged) return
     const pinned = { ...current.pinned }
     delete pinned[orderId]
-    write({ ...current, items, pinned })
+    const completed = { ...current.completed }
+    delete completed[orderId]
+    write({ ...current, items, pinned, completed })
 }
 
 function useMonitorState() {
@@ -153,4 +192,13 @@ export function useItemProgress() {
 
 export function usePinnedOrders() {
     return useMonitorState().pinned
+}
+
+const NONE: Record<string, LocallyCompletedOrder> = {}
+
+/** Orders completed on this device only. None while auto-completion is on. */
+export function useLocallyCompletedOrders() {
+    const { autoCompletion } = useAutoCompletion()
+    const { completed } = useMonitorState()
+    return autoCompletion ? NONE : completed
 }

@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useRef, useState } from "react"
-import { togglePinnedOrder, usePinnedOrders } from "./useMonitorState"
+import { completeOrderLocally, togglePinnedOrder, useLocallyCompletedOrders, usePinnedOrders } from "./useMonitorState"
 import type { SSEOrder } from "./types"
 
 // How long a card that left the list stays on screen for its exit animation.
@@ -19,6 +19,7 @@ export function useOrderReorder(orders: SSEOrder[]) {
     // `orders`: an empty list after a failed history fetch would wipe them.
     const pinnedOrders = usePinnedOrders()
     const pinnedIds = useMemo(() => new Set(Object.keys(pinnedOrders)), [pinnedOrders])
+    const completedOrders = useLocallyCompletedOrders()
     const seenRef = useRef<Set<string>>(new Set())
     // Orders that just left the list, still drawn while they fade out. Worked
     // out during render, not in an effect: otherwise the card would unmount for
@@ -30,6 +31,13 @@ export function useOrderReorder(orders: SSEOrder[]) {
         const gone = prevOrders.filter((o) => !currentIds.has(o.id))
         setPrevOrders(orders)
         if (gone.length > 0) setLeaving((prev) => new Map([...prev, ...gone.map((o) => [o.id, o] as const)]))
+    }
+    // An order taken off the completed row goes back to its arrival position.
+    const [prevCompleted, setPrevCompleted] = useState(completedOrders)
+    if (completedOrders !== prevCompleted) {
+        const reopened = Object.keys(prevCompleted).filter((id) => !completedOrders[id])
+        setPrevCompleted(completedOrders)
+        if (reopened.length > 0) setOrder((prev) => reopened.reduce(atArrival, prev))
     }
 
     const latestRef = useRef(orders)
@@ -88,16 +96,19 @@ export function useOrderReorder(orders: SSEOrder[]) {
         })
     }, [orders])
 
-    const { pinned, unpinned, leavingIds } = useMemo(() => {
+    const { pinned, regular, completed, leavingIds } = useMemo(() => {
         const current = new Map(orders.map((o) => [o.id, o]))
         const map = new Map([...leaving, ...current])
         const all = order.map((id) => map.get(id)).filter((o): o is SSEOrder => !!o)
+        const unpinned = all.filter((o) => !pinnedIds.has(o.id))
         return {
             pinned: all.filter((o) => pinnedIds.has(o.id)),
-            unpinned: all.filter((o) => !pinnedIds.has(o.id)),
+            regular: unpinned.filter((o) => !completedOrders[o.id]),
+            // Completed on this device only: a row of their own, after all the others.
+            completed: unpinned.filter((o) => completedOrders[o.id]),
             leavingIds: new Set([...leaving.keys()].filter((id) => !current.has(id))),
         }
-    }, [order, orders, leaving, pinnedIds])
+    }, [order, orders, leaving, pinnedIds, completedOrders])
 
     function move(fromId: string, toId: string) {
         if (fromId === toId) return
@@ -112,24 +123,32 @@ export function useOrderReorder(orders: SSEOrder[]) {
         })
     }
 
+    // `id` moved back to its arrival position among the unpinned orders.
+    function atArrival(list: string[], id: string) {
+        const byId = new Map(orders.map((o) => [o.id, o]))
+        const target = byId.get(id)
+        if (!target) return list
+        const rest = list.filter((x) => x !== id)
+        const at = rest.findIndex((x) => {
+            const o = byId.get(x)
+            return !!o && !pinnedIds.has(x) && arrivedAt(o) > arrivedAt(target)
+        })
+        return at < 0 ? [...rest, id] : [...rest.slice(0, at), id, ...rest.slice(at)]
+    }
+
     // A newly pinned order goes to the front of the pinned row; an unpinned one
     // goes back to its arrival position in the regular grid.
     function togglePin(id: string) {
         const unpinning = pinnedIds.has(id)
-        setOrder((prev) => {
-            const rest = prev.filter((x) => x !== id)
-            if (!unpinning) return [id, ...rest]
-            const byId = new Map(orders.map((o) => [o.id, o]))
-            const target = byId.get(id)
-            if (!target) return prev
-            const at = rest.findIndex((x) => {
-                const o = byId.get(x)
-                return !!o && !pinnedIds.has(x) && arrivedAt(o) > arrivedAt(target)
-            })
-            return at < 0 ? [...rest, id] : [...rest.slice(0, at), id, ...rest.slice(at)]
-        })
+        setOrder((prev) => (unpinning ? atArrival(prev, id) : [id, ...prev.filter((x) => x !== id)]))
         togglePinnedOrder(id)
     }
 
-    return { pinned, unpinned, pinnedIds, leavingIds, move, togglePin }
+    // Completed on this device only: the order moves, unpinned, to the end of the completed row.
+    function completeLocally(id: string) {
+        setOrder((prev) => [...prev.filter((x) => x !== id), id])
+        completeOrderLocally(id)
+    }
+
+    return { pinned, regular, completed, pinnedIds, leavingIds, move, togglePin, completeLocally }
 }

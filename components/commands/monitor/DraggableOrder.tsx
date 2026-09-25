@@ -10,7 +10,7 @@ import { OrderCard } from "./OrderCard"
 import { OrderActionsOverlay } from "./OrderActionsOverlay"
 import { CountdownBorder } from "./CountdownBorder"
 import { EXIT_ANIMATION_MS } from "./useOrderReorder"
-import { useItemProgress } from "./useMonitorState"
+import { useItemProgress, useLocallyCompletedOrders } from "./useMonitorState"
 import type { SSEOrder } from "./types"
 import { useTranslation } from "react-i18next"
 
@@ -67,16 +67,20 @@ export function DraggableOrder({
     const progress = useItemProgress()
     const items = order.orderItems.filter((it) => it.food?.printerId != null && printerIds.includes(it.food.printerId))
     const allReady = items.length > 0 && items.every((it) => (progress[it.id]?.completed ?? 0) >= it.quantity)
+    // An order completed on this device only already sits in the completed
+    // row: completing it again would only move it within that row.
+    const completedLocally = !!useLocallyCompletedOrders()[order.id]
+    const countingDown = allReady && !completedLocally
 
     const autoComplete = useEffectEvent(() => {
         if (!completing && !leaving) complete()
     })
 
     useEffect(() => {
-        if (!allReady) return
+        if (!countingDown) return
         const timer = setTimeout(autoComplete, AUTO_COMPLETE_MS)
         return () => clearTimeout(timer)
-    }, [allReady])
+    }, [countingDown])
 
     async function complete() {
         setCompleting(true)
@@ -162,7 +166,7 @@ export function DraggableOrder({
                     roomForActions={!isTablet}
                 />
                 {/* Mounted when the order becomes ready, so the countdown restarts with the timer. */}
-                {allReady && (
+                {countingDown && (
                     <CountdownBorder
                         // The card's rounded-xl: --radius (0.65rem) + 4px.
                         radius={14.4}
