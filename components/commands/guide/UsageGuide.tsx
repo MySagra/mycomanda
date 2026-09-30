@@ -82,7 +82,8 @@ interface Props {
 export function UsageGuide({ open, onClose }: Props) {
     return (
         <Dialog open={open} onOpenChange={(next) => !next && onClose()}>
-            <DialogContent className="sm:max-w-md">
+            {/* Fixed height so the footer buttons stay put while the step text changes length. */}
+            <DialogContent className="flex h-[38rem] max-h-[calc(100dvh-2rem)] flex-col sm:max-w-md">
                 {/* The popup unmounts on close, so every open starts from the first step. */}
                 <GuideBody onClose={onClose} />
             </DialogContent>
@@ -113,7 +114,7 @@ function GuideBody({ onClose }: { onClose: () => void }) {
                 {step.image}
             </div>
 
-            <DialogDescription className={cn("min-h-16 text-foreground/90", touch && "text-base")}>
+            <DialogDescription className={cn("min-h-0 flex-1 overflow-y-auto text-foreground/90", touch && "text-base")}>
                 {step.text}
             </DialogDescription>
 
@@ -132,25 +133,23 @@ function GuideBody({ onClose }: { onClose: () => void }) {
                 ))}
             </div>
 
-            <DialogFooter>
-                <div className="flex gap-2">
-                    {index > 0 && (
-                        <Button variant="outline" className="cursor-pointer" onClick={() => setIndex(index - 1)}>
-                            <ChevronLeft />
-                            {t("guide.back")}
-                        </Button>
-                    )}
-                    {last ? (
-                        <Button className="cursor-pointer" onClick={onClose}>
-                            {t("guide.start")}
-                        </Button>
-                    ) : (
-                        <Button className="cursor-pointer" onClick={() => setIndex(index + 1)}>
-                            {t("guide.next")}
-                            <ChevronRight />
-                        </Button>
-                    )}
-                </div>
+            <DialogFooter className="flex-row sm:justify-between">
+                {index > 0 && (
+                    <Button variant="outline" className="cursor-pointer" onClick={() => setIndex(index - 1)}>
+                        <ChevronLeft />
+                        {t("guide.back")}
+                    </Button>
+                )}
+                {last ? (
+                    <Button className="ml-auto cursor-pointer" onClick={onClose}>
+                        {t("guide.start")}
+                    </Button>
+                ) : (
+                    <Button className="ml-auto cursor-pointer" onClick={() => setIndex(index + 1)}>
+                        {t("guide.next")}
+                        <ChevronRight />
+                    </Button>
+                )}
             </DialogFooter>
         </>
     )
