@@ -1,7 +1,7 @@
 'use server';
 
 import { cookies, headers } from 'next/headers';
-import { AUTH_COOKIE_NAME, COOKIE_STORE_NAME, USER_COOKIE_NAME, signUserJwt } from '@/lib/auth';
+import { AUTH_COOKIE_NAME, COOKIE_STORE_NAME, USER_COOKIE_NAME } from '@/lib/auth';
 
 export async function login(username: string, password: string) {
   try {
@@ -55,8 +55,8 @@ export async function login(username: string, password: string) {
           maxAge,
         });
 
-        const userJwt = await signUserJwt({ id: user.id, username: user.username, role: user.role });
-        cookieStore.set(USER_COOKIE_NAME, userJwt, {
+        const userInfo = JSON.stringify({ id: user.id, username: user.username, role: user.role });
+        cookieStore.set(USER_COOKIE_NAME, userInfo, {
           httpOnly: false,
           secure: process.env.NODE_ENV === 'production',
           sameSite: 'lax',

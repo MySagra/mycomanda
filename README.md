@@ -87,9 +87,6 @@ Part of the **MySagra** ecosystem, MyComanda receives orders from the MySagra ba
    # Backend API base URL (server-side only)
    API_URL=http://localhost:8000
 
-   # Secret used to sign the user JWT
-   JWT_SECRET=your_secure_random_secret_here
-
    # Show the ticket number before the order code
    SHOW_NUMBERS=false
    ```
@@ -200,7 +197,6 @@ mycomanda/
 | Variable | Description | Example |
 |----------|-------------|---------|
 | `API_URL` | Backend API URL (server-side only) | `http://localhost:8000` |
-| `JWT_SECRET` | Secret used to sign the user JWT | Random string (generate with `openssl rand -base64 32`) |
 | `SHOW_NUMBERS` | `true` shows the ticket number first, otherwise the order code | `false` |
 
 > **Architecture Note**: All API communication is handled server-side through Next.js API Routes. The backend URL is never exposed to the client.

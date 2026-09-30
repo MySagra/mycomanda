@@ -14,21 +14,12 @@ export interface UseAuthResult {
   isAuthenticated: boolean;
 }
 
-function base64urlDecode(str: string): string {
-  const base64 = str.replace(/-/g, '+').replace(/_/g, '/');
-  const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
-  return atob(padded);
-}
-
 function readUserCookie(): AuthUser | null {
   if (typeof window === 'undefined') return null;
   try {
     const match = document.cookie.match(/(?:^|;\s*)mycomanda_user=([^;]*)/);
     if (!match) return null;
-    const token = decodeURIComponent(match[1]);
-    const parts = token.split('.');
-    if (parts.length !== 3) return null;
-    return JSON.parse(base64urlDecode(parts[1])) as AuthUser;
+    return JSON.parse(decodeURIComponent(match[1])) as AuthUser;
   } catch {
     return null;
   }
