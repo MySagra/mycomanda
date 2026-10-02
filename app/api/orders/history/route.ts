@@ -3,10 +3,12 @@ import { AUTH_COOKIE_NAME, getAuthToken } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
-// Statuses the kitchen can list, each sorted by the moment it was reached.
-const SORT_BY_STATUS: Record<string, string> = {
-  CONFIRMED: 'confirmedAt',
-  COMPLETED: 'completedAt',
+// Statuses the kitchen can list, each with the backend statuses it covers and
+// sorted by the moment it was reached. PARTIAL orders are still in the
+// kitchen, so they are listed together with the CONFIRMED ones.
+const QUERY_BY_STATUS: Record<string, { statuses: string[]; sortBy: string }> = {
+  CONFIRMED: { statuses: ['CONFIRMED', 'PARTIAL'], sortBy: 'confirmedAt' },
+  COMPLETED: { statuses: ['COMPLETED'], sortBy: 'completedAt' },
 };
 
 // Backend caps `limit` at 100.
@@ -35,10 +37,11 @@ interface OrdersPage {
 }
 
 /**
- * Orders of the current service day in one status: CONFIRMED (the default) is
- * fetched before the client opens the SSE channel, COMPLETED feeds the
- * completed orders page. The backend returns order items without the food, so
- * foods are loaded first and joined in to match the SSE `confirmed-order` payload.
+ * Orders of the current service day in one status: CONFIRMED (the default,
+ * PARTIAL included) is fetched before the client opens the SSE channel,
+ * COMPLETED feeds the completed orders page. The backend returns order items
+ * without the food, so foods are loaded first and joined in to match the SSE
+ * `confirmed-order` payload.
  */
 export async function GET(req: NextRequest) {
   const token = await getAuthToken();
@@ -53,8 +56,8 @@ export async function GET(req: NextRequest) {
   }
 
   const status = req.nextUrl.searchParams.get('status') ?? 'CONFIRMED';
-  const sortBy = SORT_BY_STATUS[status];
-  if (!sortBy) {
+  const query = QUERY_BY_STATUS[status];
+  if (!query) {
     return NextResponse.json({ message: 'Invalid status' }, { status: 400 });
   }
 
@@ -72,13 +75,13 @@ export async function GET(req: NextRequest) {
     const params = new URLSearchParams({
       page: String(page),
       limit: String(PAGE_SIZE),
-      sortBy,
+      sortBy: query.sortBy,
       onlyDiscounted: 'false',
-      status,
       dateFrom,
       dateTo,
       include: 'items',
     });
+    for (const s of query.statuses) params.append('status', s);
     const res = await fetch(`${process.env.API_URL}/v1/orders?${params}`, { headers, cache: 'no-store' });
     if (!res.ok) {
       return NextResponse.json({ message: 'Orders fetch failed' }, { status: res.status });

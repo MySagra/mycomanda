@@ -17,6 +17,8 @@ const MAX_ORDERS = 100
 
 // Statuses that take an order off the monitor.
 const CLOSED_STATUSES = new Set<SSEOrder["status"]>(["COMPLETED", "PICKED_UP", "CANCELLED"])
+// Statuses that keep an order in the kitchen, so it is shown on the monitor.
+const OPEN_STATUSES = new Set<SSEOrder["status"]>(["CONFIRMED", "PARTIAL"])
 
 // The proxy sends a keepalive event every 15s. Cloudflare Tunnel can drop the
 // connection without the browser ever firing `error`, so if nothing at all
@@ -140,8 +142,8 @@ export function useOrderStream({ channel, printerIds }: Options) {
 
             // Payload: { id, ticketNumber, displayCode, status }. A completed order
             // leaves the monitor; one sent back to CONFIRMED (from the completed
-            // orders page, on any device) returns, fetched in full since the
-            // event carries no items.
+            // orders page, on any device) or to PARTIAL (a station reopened it)
+            // returns, fetched in full since the event carries no items.
             es.addEventListener("order-status-update", async (ev) => {
                 const msg = ev as MessageEvent
                 if (msg.lastEventId) lastEventId = msg.lastEventId
@@ -150,7 +152,7 @@ export function useOrderStream({ channel, printerIds }: Options) {
                     const data = JSON.parse(msg.data) as { id: string; status: SSEOrder["status"] }
                     if (CLOSED_STATUSES.has(data.status)) {
                         dropOrder(data.id)
-                    } else if (data.status === "CONFIRMED") {
+                    } else if (OPEN_STATUSES.has(data.status)) {
                         const order = await fetchOrder(data.id)
                         if (!cancelled) addOrder(order)
                     }
