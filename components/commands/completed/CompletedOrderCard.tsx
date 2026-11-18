@@ -11,7 +11,8 @@ import { CheckCheck, Hash, Undo2, User, Utensils } from "lucide-react"
 import { cn } from "cn"
 import type { SSEOrder } from "@/components/commands/monitor/types"
 import { orderLabels } from "@/components/commands/monitor/orderLabel"
-import { useEnv } from "@/lib/contexts/EnvContext"
+import { useSagraSettings } from "@/lib/settings/SettingsContext"
+import { formatTime } from "@/lib/settings/time"
 import { useTranslation } from "react-i18next"
 
 interface Props {
@@ -20,17 +21,11 @@ interface Props {
     onRestore: (id: string) => Promise<void>
 }
 
-function formatTime(iso: string | null | undefined, locale: string) {
-    if (!iso) return "—"
-    const d = new Date(iso)
-    return Number.isNaN(d.getTime()) ? iso : d.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" })
-}
-
 export function CompletedOrderCard({ order, printerIds, onRestore }: Props) {
     const [restoring, setRestoring] = useState(false)
     const { deviceType } = useDeviceType()
     const { t, i18n } = useTranslation()
-    const { showNumbers } = useEnv()
+    const { showNumbers, timezone } = useSagraSettings()
     const labels = orderLabels(order, showNumbers)
     const items = order.orderItems.filter((it) => it.food?.printerId != null && printerIds.includes(it.food.printerId))
 
@@ -59,7 +54,7 @@ export function CompletedOrderCard({ order, printerIds, onRestore }: Props) {
                         title={t("completed.completedAt")}
                     >
                         <CheckCheck className="h-4 w-4" />
-                        {formatTime(order.completedAt, i18n.language)}
+                        {formatTime(order.completedAt, i18n.language, timezone)}
                     </div>
                 </div>
 

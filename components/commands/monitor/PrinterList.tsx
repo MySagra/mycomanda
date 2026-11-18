@@ -10,44 +10,59 @@ import { RefreshCw } from "lucide-react"
 import type { CashRegister, Printer } from "./types"
 import { useTranslation } from "react-i18next"
 
+async function fetchSelectablePrinters(): Promise<Printer[]> {
+    const [printersRes, cashRegistersRes] = await Promise.all([
+        fetch("/api/printers", { cache: "no-store" }),
+        fetch("/api/cash-registers", { cache: "no-store" }),
+    ])
+    if (!printersRes.ok) throw new Error(`HTTP ${printersRes.status}`)
+    if (!cashRegistersRes.ok) throw new Error(`HTTP ${cashRegistersRes.status}`)
+    const data = (await printersRes.json()) as Printer[]
+    const cashRegisters = (await cashRegistersRes.json()) as CashRegister[]
+    // Printers bound to an enabled cash register print receipts, not kitchen tickets.
+    const cashRegisterPrinterIds = new Set(
+        (Array.isArray(cashRegisters) ? cashRegisters : [])
+            .filter((c) => c.enabled)
+            .map((c) => c.defaultPrinterId)
+    )
+    return (Array.isArray(data) ? data : []).filter((p) => !cashRegisterPrinterIds.has(p.id))
+}
+
 /** Loads the printers a kitchen monitor can follow. */
 export function useSelectablePrinters() {
     const [printers, setPrinters] = useState<Printer[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
+    // Bumped by reload(): each value is one load, started by the effect below.
+    const [attempt, setAttempt] = useState(0)
     const { t } = useTranslation()
 
-    const load = useCallback(async () => {
+    useEffect(() => {
+        let cancelled = false
+        fetchSelectablePrinters()
+            .then((list) => {
+                if (cancelled) return
+                setPrinters(list)
+                setError(null)
+            })
+            .catch((e) => {
+                if (!cancelled) setError(e instanceof Error ? e.message : t("printers.loadError"))
+            })
+            .finally(() => {
+                if (!cancelled) setLoading(false)
+            })
+        return () => {
+            cancelled = true
+        }
+    }, [attempt, t])
+
+    const reload = useCallback(() => {
         setLoading(true)
         setError(null)
-        try {
-            const [printersRes, cashRegistersRes] = await Promise.all([
-                fetch("/api/printers", { cache: "no-store" }),
-                fetch("/api/cash-registers", { cache: "no-store" }),
-            ])
-            if (!printersRes.ok) throw new Error(`HTTP ${printersRes.status}`)
-            if (!cashRegistersRes.ok) throw new Error(`HTTP ${cashRegistersRes.status}`)
-            const data = (await printersRes.json()) as Printer[]
-            const cashRegisters = (await cashRegistersRes.json()) as CashRegister[]
-            // Printers bound to an enabled cash register print receipts, not kitchen tickets.
-            const cashRegisterPrinterIds = new Set(
-                (Array.isArray(cashRegisters) ? cashRegisters : [])
-                    .filter((c) => c.enabled)
-                    .map((c) => c.defaultPrinterId)
-            )
-            setPrinters((Array.isArray(data) ? data : []).filter((p) => !cashRegisterPrinterIds.has(p.id)))
-        } catch (e) {
-            setError(e instanceof Error ? e.message : t("printers.loadError"))
-        } finally {
-            setLoading(false)
-        }
-    }, [t])
+        setAttempt((n) => n + 1)
+    }, [])
 
-    useEffect(() => {
-        load()
-    }, [load])
-
-    return { printers, loading, error, reload: load }
+    return { printers, loading, error, reload }
 }
 
 interface Props {

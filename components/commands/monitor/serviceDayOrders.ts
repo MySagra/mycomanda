@@ -1,23 +1,10 @@
 import type { SSEOrder } from "./types"
-
-// The backend closes the service day at 07:00, so a day runs from 07:00 to
-// 06:59:59.999 of the next calendar day. Before 07:00 we are still in the
-// service day that started yesterday morning.
-const SERVICE_DAY_START_HOUR = 7
-
-function serviceDayRange(now: Date) {
-    const dateFrom = new Date(now)
-    dateFrom.setHours(SERVICE_DAY_START_HOUR, 0, 0, 0)
-    if (now < dateFrom) dateFrom.setDate(dateFrom.getDate() - 1)
-    const dateTo = new Date(dateFrom)
-    dateTo.setDate(dateTo.getDate() + 1)
-    dateTo.setMilliseconds(-1)
-    return { dateFrom, dateTo }
-}
+import { getSagraSettings } from "@/lib/settings/store"
+import { serviceDayRange } from "@/lib/settings/time"
 
 /** Orders of the current service day in the given status, with their foods joined in. */
 export async function fetchServiceDayOrders(status: "CONFIRMED" | "COMPLETED"): Promise<SSEOrder[]> {
-    const { dateFrom, dateTo } = serviceDayRange(new Date())
+    const { dateFrom, dateTo } = serviceDayRange(new Date(), getSagraSettings()?.settings.general.timezone || undefined)
     const params = new URLSearchParams({
         status,
         dateFrom: dateFrom.toISOString(),

@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react"
+import { createContext, useCallback, useContext, useState, useSyncExternalStore, type ReactNode } from "react"
 import type { Printer } from "./types"
 
 const STORAGE_KEY = "mycomanda_selected_printers"
@@ -40,19 +40,36 @@ function readStored(): StoredPrinter[] {
     return []
 }
 
-export function PrinterSelectionProvider({ children }: { children: ReactNode }) {
-    const [printers, setPrinters] = useState<StoredPrinter[]>([])
-    const [hydrated, setHydrated] = useState(false)
-    const [dialogOpen, setDialogOpen] = useState(false)
+// The selection, read once from localStorage and then kept here: a stable
+// snapshot for useSyncExternalStore. Null on the server, before hydration.
+let cache: StoredPrinter[] | null = null
+const listeners = new Set<() => void>()
 
-    useEffect(() => {
+function getSnapshot(): StoredPrinter[] {
+    if (!cache) {
         try {
-            setPrinters(readStored())
+            cache = readStored()
         } catch {
-            // ignore
+            cache = []
         }
-        setHydrated(true)
-    }, [])
+    }
+    return cache
+}
+
+function subscribe(onChange: () => void) {
+    listeners.add(onChange)
+    return () => {
+        listeners.delete(onChange)
+    }
+}
+
+const NO_PRINTERS: StoredPrinter[] = []
+
+export function PrinterSelectionProvider({ children }: { children: ReactNode }) {
+    const snapshot = useSyncExternalStore<StoredPrinter[] | null>(subscribe, getSnapshot, () => null)
+    const printers = snapshot ?? NO_PRINTERS
+    const hydrated = snapshot !== null
+    const [dialogOpen, setDialogOpen] = useState(false)
 
     const select = useCallback((selected: Printer[]) => {
         const stored: StoredPrinter[] = selected.map((p) => ({ id: p.id, name: p.name }))
@@ -61,7 +78,8 @@ export function PrinterSelectionProvider({ children }: { children: ReactNode }) 
         } catch {
             // ignore
         }
-        setPrinters(stored)
+        cache = stored
+        listeners.forEach((l) => l())
     }, [])
 
     return (

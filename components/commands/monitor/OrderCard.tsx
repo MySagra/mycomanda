@@ -9,7 +9,8 @@ import { cn } from "cn"
 import { advanceItem, useItemProgress } from "./useMonitorState"
 import type { SSEOrder, SSEOrderItem } from "./types"
 import { orderLabels } from "./orderLabel"
-import { useEnv } from "@/lib/contexts/EnvContext"
+import { useSagraSettings } from "@/lib/settings/SettingsContext"
+import { formatTime } from "@/lib/settings/time"
 import { useTranslation } from "react-i18next"
 
 interface Props {
@@ -26,19 +27,10 @@ interface Props {
     roomForActions?: boolean
 }
 
-function formatTime(iso: string, locale: string) {
-    try {
-        const d = new Date(iso)
-        return d.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" })
-    } catch {
-        return iso
-    }
-}
-
 export function OrderCard({ order, printerIds, pinned, ready = false, interactive = false, roomForActions = false }: Props) {
     const progress = useItemProgress()
     const { i18n } = useTranslation()
-    const { showNumbers } = useEnv()
+    const { showNumbers, timezone } = useSagraSettings()
     const labels = orderLabels(order, showNumbers)
     const items = order.orderItems.filter((it) => it.food?.printerId != null && printerIds.includes(it.food.printerId))
     if (items.length === 0) return null
@@ -64,7 +56,7 @@ export function OrderCard({ order, printerIds, pinned, ready = false, interactiv
                     </div>
                     <div className="flex items-center gap-1 text-sm text-muted-foreground">
                         <Clock className="h-4 w-4" />
-                        {formatTime(order.confirmedAt ?? order.createdAt, i18n.language)}
+                        {formatTime(order.confirmedAt ?? order.createdAt, i18n.language, timezone)}
                     </div>
                 </div>
 

@@ -34,7 +34,7 @@ Part of the **MySagra** ecosystem, MyComanda receives orders from the MySagra ba
 - **Dish Progress** - Mark single dishes as ready; the order turns green when every dish is done
 - **Pin & Reorder** - Pin urgent orders to the top and reorder cards with drag and drop
 - **Completed Orders** - Review today's completed orders and send one back to the monitor
-- **Ticket Numbers** - Show the ticket number or the order code first (`SHOW_NUMBERS`)
+- **Centralized Settings** - Sagra name, timezone, ticket numbers and completion sync come from the backend (`GET /v1/settings`) and update live through the `settings-update` SSE event
 
 ### 📱 Devices
 - **Desktop & Tablet Modes** - Hover actions with a mouse, large tap targets on touch screens; detected automatically, changeable in the settings
@@ -86,9 +86,6 @@ Part of the **MySagra** ecosystem, MyComanda receives orders from the MySagra ba
    ```env
    # Backend API base URL (server-side only)
    API_URL=http://localhost:8000
-
-   # Show the ticket number before the order code
-   SHOW_NUMBERS=false
    ```
 
    > **Note**: All API calls are made server-side through Next.js API Routes. The `API_URL` environment variable is never sent to the browser.
@@ -197,7 +194,6 @@ mycomanda/
 | Variable | Description | Example |
 |----------|-------------|---------|
 | `API_URL` | Backend API URL (server-side only) | `http://localhost:8000` |
-| `SHOW_NUMBERS` | `true` shows the ticket number first, otherwise the order code | `false` |
 
 > **Architecture Note**: All API communication is handled server-side through Next.js API Routes. The backend URL is never exposed to the client.
 

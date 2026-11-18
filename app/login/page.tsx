@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
+import { useMounted } from '@/hooks/use-mounted';
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { LoginForm } from "@/components/login/login-card/login-form";
@@ -18,11 +19,7 @@ const ERROR_MESSAGE_KEYS: Record<string, string> = {
 export default function LoginPage() {
   const { theme, setTheme } = useTheme();
   const { t } = useTranslation();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useMounted();
 
   useEffect(() => {
     const error = new URLSearchParams(window.location.search).get('error');

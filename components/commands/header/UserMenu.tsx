@@ -17,7 +17,7 @@ import {
 import { ChevronDownIcon, LogOutIcon, Settings, Sun, Moon, FileText, Languages, CircleHelp, Printer as PrinterIcon } from "lucide-react"
 import { useTheme } from "next-themes"
 import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useMounted } from "@/hooks/use-mounted"
 import { useTranslation } from "react-i18next"
 
 interface UserMenuProps {
@@ -47,10 +47,8 @@ export function UserMenu({ user, onLogout, onOpenAvvisi, onOpenGuide, printers, 
     const initials = user.username.slice(0, 2).toUpperCase()
     const router = useRouter()
     const { theme, setTheme } = useTheme()
-    const [mounted, setMounted] = useState(false)
+    const mounted = useMounted()
     const { t, i18n } = useTranslation()
-
-    useEffect(() => { setMounted(true) }, [])
 
     return (
         <DropdownMenu>

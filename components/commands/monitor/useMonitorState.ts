@@ -1,7 +1,7 @@
 "use client"
 
 import { useSyncExternalStore } from "react"
-import { useAutoCompletion } from "@/hooks/use-auto-completion"
+import { useSagraSettings } from "@/lib/settings/SettingsContext"
 import type { SSEOrderItem } from "./types"
 
 /**
@@ -21,7 +21,7 @@ import type { SSEOrderItem } from "./types"
  *   }
  *
  * `completed` holds the orders completed on this device only, while
- * auto-completion is off (see `useAutoCompletion`): they stay on the monitor,
+ * the sagra setting `preparation.syncCompletion` is off: they stay on the monitor,
  * in a row after all the others.
  *
  * Item progress is keyed by order item, not by food: the same food can appear
@@ -200,9 +200,9 @@ export function usePinnedOrders() {
 
 const NONE: Record<string, LocallyCompletedOrder> = {}
 
-/** Orders completed on this device only. None while auto-completion is on. */
+/** Orders completed on this device only. None while completion is synced with the server. */
 export function useLocallyCompletedOrders() {
-    const { autoCompletion } = useAutoCompletion()
+    const { syncCompletion } = useSagraSettings()
     const { completed } = useMonitorState()
-    return autoCompletion ? NONE : completed
+    return syncCompletion ? NONE : completed
 }

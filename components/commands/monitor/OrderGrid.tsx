@@ -6,7 +6,7 @@ import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/u
 import { Separator } from "@/components/ui/separator"
 import { useDeviceType } from "@/hooks/use-device-type"
 import { useCardSize } from "@/hooks/use-card-size"
-import { useAutoCompletion } from "@/hooks/use-auto-completion"
+import { useSagraSettings } from "@/lib/settings/SettingsContext"
 import { Check, Utensils } from "lucide-react"
 import { toast } from "sonner"
 import { useTranslation } from "react-i18next"
@@ -32,14 +32,14 @@ export function OrderGrid({ orders, printerIds, onCompleted }: Props) {
     const { pinned, regular, completed, pinnedIds, leavingIds, move, togglePin, completeLocally } = useOrderReorder(orders)
     const { deviceType } = useDeviceType()
     const { cardSizeStyle } = useCardSize()
-    const { autoCompletion } = useAutoCompletion()
+    const { syncCompletion } = useSagraSettings()
     const { t } = useTranslation()
     const reorder = usePointerReorder({ mode: deviceType === "tablet" ? "touch" : "mouse", onMove: move })
     const ghostOrder = reorder.ghost && orders.find((o) => o.id === reorder.ghost?.id)
 
     async function complete(id: string) {
         // The server is left alone: the order only moves to the end of the list.
-        if (!autoCompletion) {
+        if (!syncCompletion) {
             completeLocally(id)
             return
         }

@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input"
 import { FormField, FormItem, FormControl } from "@/components/ui/form"
 import { useState } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm, FormProvider } from "react-hook-form"
+import { useForm, FormProvider, type FieldErrors } from "react-hook-form"
+import Image from "next/image"
 import { toast } from "sonner"
 import { markGuidePending } from "@/components/commands/guide/GuideContext"
 import { login as loginAction } from "@/actions/auth"
@@ -40,7 +41,9 @@ export function LoginForm() {
             if (result.success) {
                 markGuidePending();
                 await new Promise(resolve => setTimeout(resolve, 100));
-                window.location.href = '/commands';
+                // Full page load, not a client navigation: the root layout then
+                // renders again with the session and loads the sagra settings.
+                window.location.assign(new URL('/commands', window.location.origin));
             } else {
                 // The server action returns a translation key.
                 toast.error(t(result.error ?? 'loginForm.invalidCredentials'));
@@ -55,9 +58,9 @@ export function LoginForm() {
         }
     }
 
-    function onError(errors: any) {
-        const usernameError = (errors.username as any)?.message;
-        const passwordError = (errors.password as any)?.message;
+    function onError(errors: FieldErrors<z.input<typeof formSchema>>) {
+        const usernameError = errors.username?.message;
+        const passwordError = errors.password?.message;
 
         if (usernameError && passwordError) {
             toast.error(t('loginForm.bothRequired'));
@@ -65,7 +68,7 @@ export function LoginForm() {
         }
 
         const first = Object.values(errors)[0];
-        const message = (first as any)?.message || t('loginForm.validationError');
+        const message = first?.message || t('loginForm.validationError');
         toast.error(message);
     }
 
@@ -76,9 +79,12 @@ export function LoginForm() {
                     <CardContent className="grid p-0 md:grid-cols-2">
                         <form className="p-6 md:p-8 place-content-center" onSubmit={form.handleSubmit(onSubmit, onError)}>
                             <FieldGroup>
-                                <img
+                                <Image
                                     src="/logo.svg"
                                     alt="Logo"
+                                    width={256}
+                                    height={237}
+                                    priority
                                     className="mx-auto h-36 w-auto select-none"
                                 />
                                 <div className="flex flex-col items-center gap-2 text-center">
@@ -134,8 +140,10 @@ export function LoginForm() {
                             </FieldGroup>
                         </form>
                         <div className="hidden md:flex bg-white items-center justify-center h-150 w-full">
-                            <img
+                            <Image
                                 src="/placeholder.jpg"
+                                width={1408}
+                                height={3040}
                                 alt="Logo"
                                 className="object-contain select-none"
                             />

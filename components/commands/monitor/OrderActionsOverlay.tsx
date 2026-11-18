@@ -8,7 +8,7 @@ import { Check, Hash, Pin, X } from "lucide-react"
 import { cn } from "cn"
 import type { SSEOrder } from "./types"
 import { orderLabels } from "./orderLabel"
-import { useEnv } from "@/lib/contexts/EnvContext"
+import { useSagraSettings } from "@/lib/settings/SettingsContext"
 import { useTranslation } from "react-i18next"
 
 interface Props {
@@ -31,7 +31,7 @@ const enter = "animate-in fade-in-0 fill-mode-both duration-300 ease-out"
  */
 export function OrderActionsOverlay({ order, open, pinned, completing, onOpenChange, onTogglePin, onComplete }: Props) {
     const { t } = useTranslation()
-    const { showNumbers } = useEnv()
+    const { showNumbers } = useSagraSettings()
     const labels = orderLabels(order, showNumbers)
 
     // The popup covers the whole screen, so the backdrop never receives taps:

@@ -40,7 +40,8 @@ export const en = {
       settings: "Settings",
       toggleTheme: "Toggle theme",
       fullscreen: "Fullscreen",
-      backToOrders: "Back to orders"
+      backToOrders: "Back to orders",
+      clockTooltip: "Current time ({{timezone}})"
     },
     common: {
       error: "Error",
@@ -129,10 +130,6 @@ export const en = {
       tablet: "Tablet / iPad",
       tabletDescription: "Touch device, controls designed for fingers.",
       detected: "Detected",
-      monitor: "Monitor",
-      monitorDescription: "How the orders behave in the monitor.",
-      autoCompletion: "Auto-completion",
-      autoCompletionDescription: "When on, a completed order is marked as completed on the server, so it stays in sync with the other MySagra software (cash register, pickup, statistics...) and leaves the monitor. When off, the server is not updated and the order stays in the monitor, moved to the end of the list.",
       language: "Language",
       languageDescription: "Interface language.",
       guide: "Guide",

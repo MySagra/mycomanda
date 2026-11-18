@@ -5,16 +5,18 @@ import { I18nextProvider } from "react-i18next";
 import i18n from "./i18n";
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
-  const [mounted, setMounted] = useState(false);
+  // Children wait for the saved language, so they never flash the default one.
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
+    let cancelled = false;
     const savedLang = localStorage.getItem("app_lang") || "it";
-    if (i18n.language !== savedLang) {
-      i18n.changeLanguage(savedLang);
-    }
-    setMounted(true);
-
     document.documentElement.lang = savedLang;
+
+    const applied = i18n.language === savedLang ? Promise.resolve() : i18n.changeLanguage(savedLang);
+    applied.finally(() => {
+      if (!cancelled) setReady(true);
+    });
 
     const handleLanguageChange = (lng: string) => {
       localStorage.setItem("app_lang", lng);
@@ -23,11 +25,12 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
 
     i18n.on("languageChanged", handleLanguageChange);
     return () => {
+      cancelled = true;
       i18n.off("languageChanged", handleLanguageChange);
     };
   }, []);
 
-  if (!mounted) {
+  if (!ready) {
     return null;
   }
 

@@ -11,10 +11,14 @@ import { useEffect, useState } from "react"
 import { usePrinterSelection } from "@/components/commands/monitor/PrinterSelectionContext"
 import { useGuide } from "@/components/commands/guide/GuideContext"
 import { useTranslation } from "react-i18next"
+import { useMounted } from "@/hooks/use-mounted"
+import Image from "next/image"
+import { useSagraSettings } from "@/lib/settings/SettingsContext"
+import { HeaderClock } from "@/components/commands/header/HeaderClock"
 
 export function Header() {
     const { theme, setTheme } = useTheme()
-    const [mounted, setMounted] = useState(false)
+    const mounted = useMounted()
     const [isFullscreen, setIsFullscreen] = useState(false)
     const router = useRouter()
     const onCompletedPage = usePathname().startsWith("/commands/completed")
@@ -22,9 +26,9 @@ export function Header() {
     const { printers, setDialogOpen } = usePrinterSelection()
     const { openGuide } = useGuide()
     const { t } = useTranslation()
+    const { sagraName } = useSagraSettings()
 
     useEffect(() => {
-        setMounted(true)
         const onFsChange = () => setIsFullscreen(!!document.fullscreenElement)
         document.addEventListener("fullscreenchange", onFsChange)
         return () => document.removeEventListener("fullscreenchange", onFsChange)
@@ -48,9 +52,20 @@ export function Header() {
         <header className="fixed top-0 w-full border-b bg-background z-50">
             {/* --card is translucent in light mode: the opaque header background keeps content from showing through. */}
             <div className="flex h-16 items-center justify-between px-4 md:px-6 bg-card">
-                <div className="flex items-center gap-3 min-w-0 shrink-0">
-                    <img className="mx-auto h-10 w-auto select-none" src="/logo.svg" />
-                    <h1 className="hidden md:block text-2xl font-bold select-none">MyComanda</h1>
+                {/* Left: logo + title (with sagra name) | clock */}
+                <div className="flex min-w-0 items-center gap-3">
+                    <Image className="h-10 w-auto shrink-0 select-none" src="/logo.svg" alt="Logo" width={256} height={237} priority />
+                    <div className="hidden shrink-0 flex-col leading-tight md:flex">
+                        <h1 className="whitespace-nowrap text-2xl font-bold select-none">MyComanda</h1>
+                        {sagraName && (
+                            <span className="max-w-40 truncate text-xs text-muted-foreground select-none lg:max-w-64" title={sagraName}>
+                                {sagraName}
+                            </span>
+                        )}
+                    </div>
+                    {/* Orologio solo su schermi larghi: sotto lg lo spazio serve alle azioni */}
+                    <div className="mx-2 hidden h-8 w-px bg-border lg:block" aria-hidden />
+                    <HeaderClock className="hidden lg:inline" />
                 </div>
 
                 <div className="flex items-center gap-2 md:gap-3 shrink-0">

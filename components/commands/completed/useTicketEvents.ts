@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react"
 import type { SSEOrder } from "@/components/commands/monitor/types"
+import { handleSettingsUpdateEvent, refreshSagraSettings } from "@/lib/settings/store"
 
 export interface OrderStatusUpdate {
     id: string
@@ -34,6 +35,7 @@ export function useTicketEvents(handlers: Handlers) {
         let staleTimer: ReturnType<typeof setTimeout> | undefined
         let reconnectTimer: ReturnType<typeof setTimeout> | undefined
         let lastEventId: string | null = null
+        let openedOnce = false
 
         function reconnect(reason: string) {
             if (cancelled) return
@@ -56,9 +58,19 @@ export function useTicketEvents(handlers: Handlers) {
                 lastEventId ? `/api/events/ticket?lastEventId=${encodeURIComponent(lastEventId)}` : "/api/events/ticket",
             )
             markAlive()
-            es.onopen = () => markAlive()
+            es.onopen = () => {
+                markAlive()
+                // A reconnect may have missed a settings-update while the stream was down.
+                if (openedOnce) refreshSagraSettings()
+                openedOnce = true
+            }
             es.onmessage = markAlive
             es.addEventListener("keepalive", markAlive)
+
+            es.addEventListener("settings-update", (ev) => {
+                markAlive(ev)
+                handleSettingsUpdateEvent(ev)
+            })
 
             es.addEventListener("order-status-update", (ev) => {
                 markAlive(ev)

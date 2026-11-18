@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useSyncExternalStore } from 'react';
 
 export interface AuthUser {
   id: string;
@@ -14,29 +14,33 @@ export interface UseAuthResult {
   isAuthenticated: boolean;
 }
 
+// The parsed user is cached per raw cookie value: useSyncExternalStore needs a
+// stable snapshot, and JSON.parse returns a new object every time.
+let cachedRaw: string | null = null;
+let cachedUser: AuthUser | null = null;
+
 function readUserCookie(): AuthUser | null {
-  if (typeof window === 'undefined') return null;
+  const raw = document.cookie.match(/(?:^|;\s*)mycomanda_user=([^;]*)/)?.[1] ?? null;
+  if (raw === cachedRaw) return cachedUser;
+  cachedRaw = raw;
   try {
-    const match = document.cookie.match(/(?:^|;\s*)mycomanda_user=([^;]*)/);
-    if (!match) return null;
-    return JSON.parse(decodeURIComponent(match[1])) as AuthUser;
+    cachedUser = raw ? (JSON.parse(decodeURIComponent(raw)) as AuthUser) : null;
   } catch {
-    return null;
+    cachedUser = null;
   }
+  return cachedUser;
 }
 
-export function useAuth(): UseAuthResult {
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+// The cookie is only set by login and cleared by logout, both followed by a navigation.
+const subscribe = () => () => {};
 
-  useEffect(() => {
-    setUser(readUserCookie());
-    setIsLoading(false);
-  }, []);
+export function useAuth(): UseAuthResult {
+  // undefined on the server and during hydration: the cookie is not readable yet.
+  const user = useSyncExternalStore<AuthUser | null | undefined>(subscribe, readUserCookie, () => undefined);
 
   return {
-    user,
-    isLoading,
+    user: user ?? null,
+    isLoading: user === undefined,
     isAuthenticated: !!user,
   };
 }

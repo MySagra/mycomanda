@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { UserMenu } from "@/components/commands/header/UserMenu"
 import { useAuth } from "@/hooks/use-auth"
@@ -23,9 +24,12 @@ export function SettingsHeader() {
             {/* --card is translucent in light mode: the opaque header background keeps content from showing through. */}
             <div className="flex h-16 items-center justify-between px-4 md:px-6 bg-card">
                 <div className="flex items-center gap-2">
-                    <img
+                    <Image
                         src="/logo.svg"
                         alt="Logo"
+                        width={256}
+                        height={237}
+                        priority
                         className="mx-auto h-10 w-auto select-none cursor-pointer"
                         onClick={() => router.push("/commands")}
                     />

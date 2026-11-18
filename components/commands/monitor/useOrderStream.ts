@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { fetchOrder, fetchServiceDayOrders } from "./serviceDayOrders"
 import { clearOrderState } from "./useMonitorState"
 import { EXIT_ANIMATION_MS } from "./useOrderReorder"
+import { handleSettingsUpdateEvent, refreshSagraSettings } from "@/lib/settings/store"
 import type { SSEOrder } from "./types"
 
 type ConnectionState = "loading" | "connecting" | "open" | "error"
@@ -44,6 +45,7 @@ export function useOrderStream({ channel, printerIds }: Options) {
         let staleTimer: ReturnType<typeof setTimeout> | undefined
         let reconnectTimer: ReturnType<typeof setTimeout> | undefined
         let lastEventId: string | null = null
+        let openedOnce = false
 
         function addOrder(order: SSEOrder) {
             if (!isForSelected(order)) return
@@ -102,6 +104,9 @@ export function useOrderStream({ channel, printerIds }: Options) {
 
             es.onopen = () => {
                 console.info("[SSE] open")
+                // A reconnect may have missed a settings-update while the stream was down.
+                if (openedOnce) refreshSagraSettings()
+                openedOnce = true
                 setState("open")
                 setLastError(null)
                 markAlive()
@@ -114,6 +119,14 @@ export function useOrderStream({ channel, printerIds }: Options) {
 
             // Heartbeat from the proxy: no payload, it only proves the tunnel is up.
             es.addEventListener("keepalive", markAlive)
+
+            // Payload: the whole settings document, as returned by GET /v1/settings.
+            es.addEventListener("settings-update", (ev) => {
+                const msg = ev as MessageEvent
+                if (msg.lastEventId) lastEventId = msg.lastEventId
+                markAlive()
+                handleSettingsUpdateEvent(msg)
+            })
 
             es.addEventListener("confirmed-order", (ev) => {
                 const msg = ev as MessageEvent
