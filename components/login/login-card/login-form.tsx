@@ -1,20 +1,20 @@
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { ButtonGroup } from "@/components/ui/button-group"
-import { Card, CardContent } from "@/components/ui/card"
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
+import { Button } from "@/components/login/ui/button"
+import { ButtonGroup } from "@/components/login/ui/button-group"
+import { Card, CardContent } from "@/components/login/ui/card"
+import { Field, FieldGroup, FieldLabel, } from "@/components/login/ui/field"
+import { Input } from "@/components/login/ui/input"
 import { FormField, FormItem, FormControl } from "@/components/ui/form"
 import { useState } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm, FormProvider, type FieldErrors } from "react-hook-form"
-import Image from "next/image"
-import { toast } from "sonner"
-import { markGuidePending } from "@/components/commands/guide/GuideContext"
-import { login as loginAction } from "@/actions/auth"
-import { Eye, EyeOff } from "lucide-react"
+import { toast } from "sonner";
+import { login as loginAction } from "@/actions/auth";
+import { Eye, EyeOff } from "lucide-react";
 import z from "zod"
-import { useTranslation } from "react-i18next"
+import { useTranslation } from "react-i18next";
+import { markGuidePending } from "@/components/commands/guide/GuideContext";
+import Image from "next/image";
 
 export function LoginForm() {
     const [isLoading, setIsLoading] = useState(false);
@@ -41,8 +41,7 @@ export function LoginForm() {
             if (result.success) {
                 markGuidePending();
                 await new Promise(resolve => setTimeout(resolve, 100));
-                // Full page load, not a client navigation: the root layout then
-                // renders again with the session and loads the sagra settings.
+                // Full page load: the root layout renders again with the session and loads the sagra settings.
                 window.location.assign(new URL('/commands', window.location.origin));
             } else {
                 // The server action returns a translation key.
@@ -58,7 +57,10 @@ export function LoginForm() {
         }
     }
 
+
+    // Handle validation errors from react-hook-form (zod)
     function onError(errors: FieldErrors<z.input<typeof formSchema>>) {
+        // If both username and password are missing, show a combined message
         const usernameError = errors.username?.message;
         const passwordError = errors.password?.message;
 
@@ -144,6 +146,7 @@ export function LoginForm() {
                                 src="/placeholder.jpg"
                                 width={1408}
                                 height={3040}
+                                priority
                                 alt="Logo"
                                 className="object-contain select-none"
                             />
