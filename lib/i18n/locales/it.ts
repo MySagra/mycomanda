@@ -40,6 +40,7 @@ export const it = {
       settings: "Impostazioni",
       toggleTheme: "Cambia tema",
       fullscreen: "Schermo intero",
+      exitFullscreen: "Esci da schermo intero",
       backToOrders: "Torna alle comande",
       clockTooltip: "Ora attuale ({{timezone}})"
     },

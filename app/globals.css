@@ -120,6 +120,13 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Same text as MyCassa and the other apps: Tailwind 4.2's default stack.
+     Tailwind 4.3 falls back to a different one (Noto Sans first), because
+     --font-geist-sans is defined on <body> and never reaches <html>. */
+  html {
+    font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  }
 }
 /* iOS-style wobble for cards in reorder mode. `rotate` leaves `transform` free
    for the other animations. */

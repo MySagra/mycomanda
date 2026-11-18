@@ -40,6 +40,7 @@ export const en = {
       settings: "Settings",
       toggleTheme: "Toggle theme",
       fullscreen: "Fullscreen",
+      exitFullscreen: "Exit fullscreen",
       backToOrders: "Back to orders",
       clockTooltip: "Current time ({{timezone}})"
     },

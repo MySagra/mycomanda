@@ -2,11 +2,11 @@
 
 import { useEffect } from 'react';
 import Link from "next/link";
-import { Button } from "@/components/login/ui/button";
+import { Button } from "@/components/radix-ui/button";
 import { LoginForm } from "@/components/login/login-card/login-form";
 import { useTheme } from 'next-themes';
 import { Moon, Sun, Languages } from 'lucide-react';
-import { ButtonGroup, ButtonGroupText } from '@/components/login/ui/button-group';
+import { ButtonGroup, ButtonGroupText } from '@/components/radix-ui/button-group';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { useMounted } from '@/hooks/use-mounted';
